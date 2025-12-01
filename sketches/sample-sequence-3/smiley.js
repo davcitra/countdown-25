@@ -24,10 +24,12 @@ export default class Emoji {
     // Target positions for smooth movement
     this.targetX = this.positionX;
     this.targetY = this.positionY;
-    this.smoothing = 0.15;
+    this.smoothing = 0.55;
+    this.loveModeSmoothing = 0.05; // Slightly slower smoothing for love mode
     this.isWinking = false;
     this.isNeutral = true; // Start neutral :|
     this.isLoveMode = false;
+    this.isVisible = true; // For making emoji disappear
     
     // For wall hit detection
     this.previousX = this.positionX;
@@ -61,22 +63,42 @@ export default class Emoji {
     return !wasWinking && nowWinking; // Just started winking
   }
 
+  // New method for translating emojis along x-axis
+  translateX(newX, canvasWidth) {
+    // For right emoji (number = 1), allow going off-screen
+    if (this.emoji === 1) {
+      const maxX = canvasWidth + 0.5*this.size;
+      this.targetX = Math.min(maxX, newX);
+    } else {
+      // For left emoji, keep within canvas bounds
+      const minX = this.size / 2;
+      const maxX = canvasWidth - this.size / 2;
+      this.targetX = Math.max(minX, Math.min(maxX, newX));
+    }
+    // Y position stays the same
+  }
+  
+  // Return both emojis to love position with smooth animation
+  returnToLove(loveX, loveY) {
+    this.targetX = loveX;
+    this.targetY = loveY;
+    this.isVisible = true; // Make sure it's visible
+  }
+  
+  // Return left emoji to center to display :3 centered
+  returnToCenter(centerX, centerY) {
+    this.targetX = centerX;
+    this.targetY = centerY;
+  }
+  
+  // Make the right emoji disappear (when successfully dragged off-screen)
+  disappear() {
+    this.isVisible = false;
+  }
+
   updatePos(clickX, clickY, canvasWidth, canvasHeight, controllingRightSide) {
-    // In love mode - different behavior
+    // In love mode, use translateX instead (called from sketch.js)
     if (this.isLoveMode) {
-      // Left emoji (number = -1) stays fixed
-      if (this.emoji === -1) {
-        // Don't update position
-        return;
-      }
-      // Right emoji (number = 1) can only move to the right
-      else {
-        const centerX = canvasWidth / 2;
-        const lovePosition = centerX + this.size / 3;
-        // Can only drag to the right, starting from love position
-        this.targetX = Math.max(lovePosition, clickX);
-        this.targetY = clickY;
-      }
       return;
     }
     
@@ -110,27 +132,23 @@ export default class Emoji {
     const prevX = this.positionX;
     const prevY = this.positionY;
     
-    this.positionX += (this.targetX - this.positionX) * this.smoothing;
-    this.positionY += (this.targetY - this.positionY) * this.smoothing;
-    
-    // If already in love mode, simplified behavior
+    // If already in love mode, use smooth interpolation
     if (this.isLoveMode) {
       this.targetRotation = 0;
       this.rotation = 0; // Keep facing forward
       this.isNeutral = false;
       this.isWinking = false;
       
-      const centerX = this.canvas.width / 2;
-      
-      // Both emojis stay at their close positions
-      if (this.emoji === 1) {
-        this.positionX = centerX + this.size / 3;
-      } else {
-        this.positionX = centerX - this.size / 3;
-      }
+      // Simple smooth interpolation for love mode
+      this.positionX += (this.targetX - this.positionX) * this.loveModeSmoothing;
+      this.positionY += (this.targetY - this.positionY) * this.loveModeSmoothing;
       
       return; // Skip all other state logic
     }
+    
+    // Normal mode - regular smoothing
+    this.positionX += (this.targetX - this.positionX) * this.smoothing;
+    this.positionY += (this.targetY - this.positionY) * this.smoothing;
     
     // Not in love mode yet - normal behavior
     const centerX = this.canvas.width / 2;
@@ -173,6 +191,9 @@ export default class Emoji {
   }
 
   draw() {
+    // Don't draw if invisible
+    if (!this.isVisible) return;
+    
     this.ctx.save();
     
     this.ctx.fillStyle = "white";
