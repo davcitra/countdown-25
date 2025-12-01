@@ -64,6 +64,12 @@ function handleMouseDown(event) {
   // Determine which side we clicked on
   controllingRightSide = clickX > centerX;
   
+  // If in love mode, start dragging
+  if (emoji_1.isLoveMode) {
+    emoji_1.startDragging();
+    emoji_2.startDragging();
+  }
+  
   handleMouseMove(event); // Update position immediately on click
 }
 
@@ -98,6 +104,12 @@ function handleMouseMove(event) {
 function handleMouseUp(event) {
   isDragging = false;
   controllingRightSide = null;
+  
+  // If in love mode, stop dragging
+  if (emoji_1.isLoveMode) {
+    emoji_1.stopDragging();
+    emoji_2.stopDragging();
+  }
 }
 
 canvas.addEventListener("mousedown", handleMouseDown);

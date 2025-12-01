@@ -62,6 +62,25 @@ export default class Emoji {
   }
 
   updatePos(clickX, clickY, canvasWidth, canvasHeight, controllingRightSide) {
+    // In love mode - different behavior
+    if (this.isLoveMode) {
+      // Left emoji (number = -1) stays fixed
+      if (this.emoji === -1) {
+        // Don't update position
+        return;
+      }
+      // Right emoji (number = 1) can only move to the right
+      else {
+        const centerX = canvasWidth / 2;
+        const lovePosition = centerX + this.size / 3;
+        // Can only drag to the right, starting from love position
+        this.targetX = Math.max(lovePosition, clickX);
+        this.targetY = clickY;
+      }
+      return;
+    }
+    
+    // Normal behavior when not in love mode
     const centerX = canvasWidth / 2;
     const centerY = canvasHeight / 2;
     
@@ -94,61 +113,63 @@ export default class Emoji {
     this.positionX += (this.targetX - this.positionX) * this.smoothing;
     this.positionY += (this.targetY - this.positionY) * this.smoothing;
     
-    // Calculate actual distance (norm) from center point
+    // If already in love mode, simplified behavior
+    if (this.isLoveMode) {
+      this.targetRotation = 0;
+      this.rotation = 0; // Keep facing forward
+      this.isNeutral = false;
+      this.isWinking = false;
+      
+      const centerX = this.canvas.width / 2;
+      
+      // Both emojis stay at their close positions
+      if (this.emoji === 1) {
+        this.positionX = centerX + this.size / 3;
+      } else {
+        this.positionX = centerX - this.size / 3;
+      }
+      
+      return; // Skip all other state logic
+    }
+    
+    // Not in love mode yet - normal behavior
     const centerX = this.canvas.width / 2;
     const centerY = this.canvas.height / 2;
     const distX = this.positionX - centerX;
     const distY = this.positionY - centerY;
     const distanceFromCenter = Math.sqrt(distX * distX + distY * distY);
     
-    // Calculate previous distance to determine if moving toward or away from center
     const prevDistX = prevX - centerX;
     const prevDistY = prevY - centerY;
     const prevDistance = Math.sqrt(prevDistX * prevDistX + prevDistY * prevDistY);
     
     const movementAmount = Math.abs(distX - prevDistX);
     
-    // If already in love mode, STAY THERE - don't change anything
-    if (this.isLoveMode) {
-      this.targetRotation = 0;
-      this.isNeutral = false;
-      this.isWinking = false;
+    // Handle rotation and neutral state based on movement
+    if (movementAmount > 0.5) {
+      const movingAwayFromCenter = distanceFromCenter > prevDistance;
       
-      // Move emojis closer to touch
-      if (this.emoji === 1) {
-        this.positionX = centerX + this.size / 3;
+      if (movingAwayFromCenter) {
+        this.targetRotation = Math.PI; // Face away
+        this.isNeutral = true;
       } else {
-        this.positionX = centerX - this.size / 3;
-      }
-    } else {
-      // Not in love mode yet - normal behavior
-      
-      // Handle rotation and neutral state based on movement
-      if (movementAmount > 0.5) {
-        const movingAwayFromCenter = distanceFromCenter > prevDistance;
-        
-        if (movingAwayFromCenter) {
-          this.targetRotation = Math.PI; // Face away
-          this.isNeutral = true;
-        } else {
-          this.targetRotation = 0; // Face center
-          this.isNeutral = false;
-        }
-      }
-      
-      // Handle winking (if close to center and not moving away)
-      if (!this.isNeutral) {
-        this.isWinking = distanceFromCenter < this.canvas.width / 6;
-      } else {
-        this.isWinking = false;
+        this.targetRotation = 0; // Face center
+        this.isNeutral = false;
       }
     }
     
-    // ALWAYS: Smoothly interpolate rotation
+    // Handle winking (if close to center and not moving away)
+    if (!this.isNeutral) {
+      this.isWinking = distanceFromCenter < this.canvas.width / 6;
+    } else {
+      this.isWinking = false;
+    }
+    
+    // Smoothly interpolate rotation
     let rotDiff = this.targetRotation - this.rotation;
     while (rotDiff > Math.PI) rotDiff -= 2 * Math.PI;
     while (rotDiff < -Math.PI) rotDiff += 2 * Math.PI;
-    this.rotation += rotDiff * 0.05; // Slow rotation
+    this.rotation += rotDiff * 0.05;
   }
 
   draw() {
@@ -159,7 +180,7 @@ export default class Emoji {
     this.ctx.font = `${this.size}px Helvetica Neue, Helvetica, bold`;
     this.ctx.textAlign = "center";
     
-    // Choose face based on state (priority: love > winking > neutral > normal)
+    // Choose face based on state
     let face = ":)";
     if (this.isLoveMode) {
       face = ":3";
@@ -172,7 +193,6 @@ export default class Emoji {
     // Move to position and apply rotation
     this.ctx.translate(this.positionX, this.positionY);
     this.ctx.rotate(this.rotation);
-    
     
     // Right emoji (number = 1) - starts facing left (toward center)
     if (this.emoji === 1) {
