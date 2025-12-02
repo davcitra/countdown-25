@@ -3,7 +3,7 @@ import { createEngine } from "../_shared/engine.js"
 import Emoji from "./smiley.js"
 import Particle from "./particles.js"
 
-const { renderer, run } = createEngine()
+const { renderer, run, finish } = createEngine()
 const { ctx, canvas } = renderer
 run(display)
 const size = 500 // Emoji size - stays the same
@@ -47,7 +47,7 @@ function createExplosion(emoji1, emoji2, size) {
 
 // Tracking for facing detection
 let facingStartTime = null;
-const FACING_DURATION = 1500; // 1.5 seconds
+const FACING_DURATION = 1000; // 1.5 seconds
 
 
 let isDragging = false;
@@ -55,7 +55,9 @@ let controllingRightSide = null; // Track which side we're controlling
 let dragStartX = 0; // Track where drag started (for love mode)
 let lovePositionX1 = 0; // Store love mode positions
 let lovePositionX2 = 0;
-let lovePositionY = 0;
+let lovePositionY1 = 0;
+let lovePositionY2 = 0;
+
 const LOVE_DISTANCE = 333; // Distance between emojis in love mode (size/3 * 2)
 
 function handleMouseDown(event) {
@@ -73,7 +75,8 @@ function handleMouseDown(event) {
     if (lovePositionX1 === 0) {
       lovePositionX1 = emoji_1.positionX;
       lovePositionX2 = emoji_2.positionX;
-      lovePositionY = emoji_1.positionY;
+      lovePositionY1 = emoji_1.positionY;
+      lovePositionY2 = emoji_2.positionY;
     }
   } else {
     // Normal mode - determine which side we clicked on
@@ -110,7 +113,7 @@ function handleMouseMove(event) {
       
       if (newEmoji2X >= threeQuarterWidth) {
         // Left emoji goes back to center to display :3 centered
-        emoji_2.returnToCenter((canvas.width / 2)-50, lovePositionY);
+        emoji_2.returnToCenter((canvas.width / 2)-50, lovePositionY1);
         // Right emoji continues moving
         emoji_1.translateX(newEmoji1X, canvas.width);
       } else {
@@ -148,10 +151,12 @@ function handleMouseUp(event) {
     if (rightEmojiExited) {
       // Success! Right emoji disappears, left stays at center
       emoji_1.disappear();
+      finish();
+
     } else {
       // Failed to exit - both return to love position
-      emoji_1.returnToLove(lovePositionX1, lovePositionY);
-      emoji_2.returnToLove(lovePositionX2, lovePositionY);
+      emoji_1.returnToLove(lovePositionX1, lovePositionY1);
+      emoji_2.returnToLove(lovePositionX2, lovePositionY2);
     }
   }
 }
@@ -200,11 +205,12 @@ function display() {
       const centerX = canvas.width / 2;
       lovePositionX1 = centerX + size / 3;
       lovePositionX2 = centerX - size / 3;
-      lovePositionY = emoji_1.positionY;
+      lovePositionY1 = emoji_1.positionY;
+      lovePositionY2 = emoji_1.positionY
       
       // Set emojis to love position
-      emoji_1.returnToLove(lovePositionX1, lovePositionY);
-      emoji_2.returnToLove(lovePositionX2, lovePositionY);
+      emoji_1.returnToLove(lovePositionX1, lovePositionY1);
+      emoji_2.returnToLove(lovePositionX2, lovePositionY2);
       
       facingStartTime = null; // Clear timer
     }

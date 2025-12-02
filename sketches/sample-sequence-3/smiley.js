@@ -1,3 +1,4 @@
+
 export default class Emoji {
   constructor({ number, size, ctx, canvas }) {
     this.ctx = ctx;
@@ -24,7 +25,7 @@ export default class Emoji {
     // Target positions for smooth movement
     this.targetX = this.positionX;
     this.targetY = this.positionY;
-    this.smoothing = 0.55;
+    this.smoothing = 0.02;
     this.loveModeSmoothing = 0.05; // Slightly slower smoothing for love mode
     this.isWinking = false;
     this.isNeutral = true; // Start neutral :|
@@ -94,6 +95,7 @@ export default class Emoji {
   // Make the right emoji disappear (when successfully dragged off-screen)
   disappear() {
     this.isVisible = false;
+    
   }
 
   updatePos(clickX, clickY, canvasWidth, canvasHeight, controllingRightSide) {
