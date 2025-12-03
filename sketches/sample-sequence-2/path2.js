@@ -40,17 +40,14 @@ export default class Path2 {
       const response = await fetch(filename);
       const svgText = await response.text();
 
-      // Parse the SVG
       const parser = new DOMParser();
       const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
 
-      // Get the viewBox dimensions
       const svg = svgDoc.querySelector("svg");
       const viewBox = svg.getAttribute("viewBox").split(" ");
       const pathOriginalWidth = parseFloat(viewBox[2]);
       const pathOriginalHeight = parseFloat(viewBox[3]);
 
-      // Get the path element and extract its 'd' attribute
       const pathElement = svgDoc.querySelector("path");
       const pathLength = pathElement.getTotalLength();
       const resolution = 40;
@@ -72,7 +69,6 @@ export default class Path2 {
         });
       }
 
-      // Load the mask path
       const maskElement = svgDoc.querySelector("#mask path");
       if (maskElement) {
         this.maskPath = new Path2D(maskElement.getAttribute("d"));
@@ -112,6 +108,7 @@ export default class Path2 {
       }
     }
   }
+
   getAngleAtDistance(progressDistance) {
     for (let i = 0; i < this.distances.length; i++) {
       if (this.distances[i] > progressDistance) {
@@ -131,7 +128,6 @@ export default class Path2 {
         let startAngle = this.rots[startId];
         let endAngle = this.rots[endId];
 
-        // Fix angle wrapping - ensure we take the shortest path
         let diff = endAngle - startAngle;
         if (diff > Math.PI) {
           endAngle -= 2 * Math.PI;
@@ -146,60 +142,23 @@ export default class Path2 {
     }
   }
 
-  // draw(ctx) {
-  //   if (this.loaded) {
-  //     ctx.save();
-
-  //     // ctx.beginPath();
-  //     // ctx.moveTo(this.points[0].x, this.points[0].y);
-  //     // for (let i = 1; i < this.points.length; i++) {
-  //     //   ctx.lineTo(this.points[i].x, this.points[i].y);
-  //     // }
-  //     // ctx.strokeWidth = 5;
-  //     // ctx.strokeStyle = "white";
-  //     // ctx.stroke();
-
-  //     for (let i = 0; i < this.points.length; i++) {
-  //       const angle = this.rots[i];
-
-  //       ctx.beginPath();
-  //       ctx.rect(this.points[i].x - 5, this.points[i].y - 5, 20, 8);
-  //       ctx.rotate(angle);
-  //       ctx.fillStyle = "red";
-  //       ctx.fill();
-  //     }
-
-  //     ctx.restore();
-  //   }
-  // }
-
   draw(ctx) {
     if (this.loaded) {
       ctx.save();
 
-      // // Draw the mask in white
-      // if (this.maskPath) {
-      //   ctx.save();
-      //   ctx.translate(this.offsetX, this.offsetY);
-      //   ctx.scale(this.scale, this.scale);
-      //   ctx.fillStyle = "white";
-      //   ctx.fill(this.maskPath);
-      //   ctx.restore();
-      // }
-
       for (let i = 0; i < this.points.length; i++) {
         const angle = (this.rots[i] + this.rots[i + 1]) / 2;
 
-        ctx.save(); // Save state for each rectangle
-        ctx.translate(this.points[i].x, this.points[i].y); // Move to the point
-        ctx.rotate(angle); // Rotate around that point
+        ctx.save();
+        ctx.translate(this.points[i].x, this.points[i].y);
+        ctx.rotate(angle);
 
         ctx.beginPath();
-        ctx.rect(-10, -4, 20, 8); // Draw centered on the point
-        ctx.fillStyle = "white"; // Changed to white as you requested
+        ctx.rect(-10, -4, 20, 8);
+        ctx.fillStyle = "white";
         ctx.fill();
 
-        ctx.restore(); // Restore state after each rectangle
+        ctx.restore();
       }
 
       ctx.restore();

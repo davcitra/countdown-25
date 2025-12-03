@@ -3,24 +3,23 @@ export default class Voiture {
     this.x = x;
     this.y = y;
     this.width = width;
-    // Maintain aspect ratio based on the SVG viewBox (1560.7 x 1080)
     this.height = (1080 / 1560.7) * width;
-    this.angle = 0; // Rotation angle in radians
+    this.angle = 0;
     this.positionAlongPath = 0;
     this.isMoving = false;
-    this.speed = 0; // Constant speed of movement along path
+    this.speed = 0;
 
-    // Off-road properties
     this.isOffRoad = false;
     this.offRoadVelocityX = 0;
     this.offRoadVelocityY = 0;
 
-    // Fade-in properties
-    this.opacity = 0; // Start invisible
-    this.isSpawning = true;
-    this.spawnDelay = 400; // 1 second delay in milliseconds
-    this.spawnTime = Date.now();
-    this.fadeDuration = 400; // Fade in over 800ms
+    this.opacity = 1; // Always full opacity
+
+    // Sliding in animation
+    this.isSliding = true;
+    this.slideStartPosition = 0; // Will be set when spawned
+    this.slideTargetPosition = 0; // Will be set when spawned
+    this.slideSpeed = 8; // Pixels per frame to slide in
 
     // Load the car SVG
     this.image = new Image();
@@ -30,44 +29,52 @@ export default class Voiture {
     this.image.onload = () => {
       this.loaded = true;
     };
+
+    // Load the mask SVG
+    this.maskImage = new Image();
+    this.maskImage.src = "VoitureCache.svg";
+    this.maskLoaded = false;
+
+    this.maskImage.onload = () => {
+      this.maskLoaded = true;
+    };
   }
 
-  // Update car position
   setPosition(x, y) {
     this.x = x;
     this.y = y;
   }
 
-  // Set angle
   setAngle(angle) {
     this.angle = angle;
   }
 
-  // Move car by delta values
   move(dx, dy) {
     this.x += dx;
     this.y += dy;
   }
 
+  // Initialize slide-in animation
+  initSlideIn(targetPosition, slideDistance = 300) {
+    this.slideTargetPosition = targetPosition;
+    this.slideStartPosition = targetPosition - slideDistance;
+    this.positionAlongPath = this.slideStartPosition;
+    this.isSliding = true;
+  }
+
   update() {
-    // Handle spawn fade-in
-    if (this.isSpawning) {
-      const timeSinceSpawn = Date.now() - this.spawnTime;
+    // Handle sliding in animation
+    if (this.isSliding) {
+      this.positionAlongPath += this.slideSpeed;
 
-      if (timeSinceSpawn < this.spawnDelay) {
-        // Still in delay period, stay invisible
-        this.opacity = 0;
-        return; // Don't update movement during delay
-      } else {
-        // Start fading in after delay
-        const fadeProgress =
-          (timeSinceSpawn - this.spawnDelay) / this.fadeDuration;
-        this.opacity = Math.min(fadeProgress, 1); // Clamp to 1
-
-        if (this.opacity >= 1) {
-          this.isSpawning = false; // Fade-in complete
-        }
+      if (this.positionAlongPath >= this.slideTargetPosition) {
+        this.positionAlongPath = this.slideTargetPosition;
+        this.isSliding = false;
+        console.log("Car finished sliding in");
       }
+
+      // Don't process normal movement while sliding
+      return;
     }
 
     if (this.isMoving) {
@@ -79,24 +86,21 @@ export default class Voiture {
     if (!this.isOffRoad) {
       this.positionAlongPath += this.speed;
     } else {
-      // When off-road, move in straight line
       this.x += this.offRoadVelocityX;
       this.y += this.offRoadVelocityY;
     }
 
-    console.log(this.speed);
+    // console.log(this.speed);
   }
 
   goOffRoad() {
     if (!this.isOffRoad) {
       this.isOffRoad = true;
-      // Calculate velocity components based on current angle and speed
       this.offRoadVelocityX = Math.cos(this.angle) * this.speed;
       this.offRoadVelocityY = Math.sin(this.angle) * this.speed;
     }
   }
 
-  // Start moving
   startMoving() {
     this.isMoving = true;
   }
@@ -105,15 +109,28 @@ export default class Voiture {
     this.isMoving = false;
   }
 
-  // Draw the car on the canvas
+  // Draw the mask behind the car with same opacity
+  drawMask(ctx) {
+    if (this.maskLoaded && this.opacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = this.opacity;
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.drawImage(
+        this.maskImage,
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
+      );
+      ctx.restore();
+    }
+  }
+
   draw(ctx) {
     if (this.loaded && this.opacity > 0) {
       ctx.save();
-
-      // Apply opacity
       ctx.globalAlpha = this.opacity;
-
-      // Translate to car center, rotate, then draw
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle);
       ctx.drawImage(
@@ -123,7 +140,6 @@ export default class Voiture {
         this.width,
         this.height
       );
-
       ctx.restore();
     }
   }
