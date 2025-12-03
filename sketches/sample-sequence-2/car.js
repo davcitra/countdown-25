@@ -10,6 +10,18 @@ export default class Voiture {
     this.isMoving = false;
     this.speed = 0; // Constant speed of movement along path
 
+    // Off-road properties
+    this.isOffRoad = false;
+    this.offRoadVelocityX = 0;
+    this.offRoadVelocityY = 0;
+
+    // Fade-in properties
+    this.opacity = 0; // Start invisible
+    this.isSpawning = true;
+    this.spawnDelay = 400; // 1 second delay in milliseconds
+    this.spawnTime = Date.now();
+    this.fadeDuration = 400; // Fade in over 800ms
+
     // Load the car SVG
     this.image = new Image();
     this.image.src = "Voiture.svg";
@@ -38,33 +50,51 @@ export default class Voiture {
   }
 
   update() {
+    // Handle spawn fade-in
+    if (this.isSpawning) {
+      const timeSinceSpawn = Date.now() - this.spawnTime;
+
+      if (timeSinceSpawn < this.spawnDelay) {
+        // Still in delay period, stay invisible
+        this.opacity = 0;
+        return; // Don't update movement during delay
+      } else {
+        // Start fading in after delay
+        const fadeProgress =
+          (timeSinceSpawn - this.spawnDelay) / this.fadeDuration;
+        this.opacity = Math.min(fadeProgress, 1); // Clamp to 1
+
+        if (this.opacity >= 1) {
+          this.isSpawning = false; // Fade-in complete
+        }
+      }
+    }
+
     if (this.isMoving) {
-      this.speed += 0.2;
+      this.speed += 0.4;
     } else {
       this.speed *= 0.98;
     }
-    this.positionAlongPath += this.speed;
-    // if (this.progress > 1) {
-    //   this.progress = 1;
-    //   this.isMoving = false;
-    // }
+
+    if (!this.isOffRoad) {
+      this.positionAlongPath += this.speed;
+    } else {
+      // When off-road, move in straight line
+      this.x += this.offRoadVelocityX;
+      this.y += this.offRoadVelocityY;
+    }
+
+    console.log(this.speed);
   }
 
-  // Update car along path
-  // updateOnPath(path) {
-  //   if (!path.loaded) return;
-
-  //   const point = path.getPointAtProgress(
-  //     this.progress,
-  //     path.scale,
-  //     path.yOffset
-  //   );
-  //   if (point) {
-  //     this.x = point.x - this.width / 2;
-  //     this.y = point.y - this.height / 2;
-  //     this.angle = point.angle;
-  //   }
-  // }
+  goOffRoad() {
+    if (!this.isOffRoad) {
+      this.isOffRoad = true;
+      // Calculate velocity components based on current angle and speed
+      this.offRoadVelocityX = Math.cos(this.angle) * this.speed;
+      this.offRoadVelocityY = Math.sin(this.angle) * this.speed;
+    }
+  }
 
   // Start moving
   startMoving() {
@@ -77,8 +107,11 @@ export default class Voiture {
 
   // Draw the car on the canvas
   draw(ctx) {
-    if (this.loaded) {
+    if (this.loaded && this.opacity > 0) {
       ctx.save();
+
+      // Apply opacity
+      ctx.globalAlpha = this.opacity;
 
       // Translate to car center, rotate, then draw
       ctx.translate(this.x, this.y);
@@ -93,60 +126,5 @@ export default class Voiture {
 
       ctx.restore();
     }
-  }
-
-  // Check if a point is inside the car (useful for mouse interactions)
-  contains(x, y) {
-    return (
-      x >= this.x &&
-      x <= this.x + this.width &&
-      y >= this.y &&
-      y <= this.y + this.height
-    );
-  }
-
-  // Get car's rotated bounding box for occlusion
-  getBoundingBox() {
-    const cx = this.x + this.width / 2;
-    const cy = this.y + this.height / 2;
-
-    // Create corners of the car rectangle
-    const corners = [
-      { x: -this.width / 2, y: -this.height / 2 },
-      { x: this.width / 2, y: -this.height / 2 },
-      { x: this.width / 2, y: this.height / 2 },
-      { x: -this.width / 2, y: this.height / 2 },
-    ];
-
-    // Rotate corners
-    const rotatedCorners = corners.map((corner) => {
-      const x =
-        corner.x * Math.cos(this.angle) - corner.y * Math.sin(this.angle);
-      const y =
-        corner.x * Math.sin(this.angle) + corner.y * Math.cos(this.angle);
-      return { x: x + cx, y: y + cy };
-    });
-
-    return rotatedCorners;
-  }
-
-  // Check if a point is occluded by the car (considering rotation)
-  occludesPoint(px, py) {
-    const corners = this.getBoundingBox();
-
-    // Use ray casting algorithm to check if point is inside polygon
-    let inside = false;
-    for (let i = 0, j = corners.length - 1; i < corners.length; j = i++) {
-      const xi = corners[i].x,
-        yi = corners[i].y;
-      const xj = corners[j].x,
-        yj = corners[j].y;
-
-      const intersect =
-        yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
-      if (intersect) inside = !inside;
-    }
-
-    return inside;
   }
 }
