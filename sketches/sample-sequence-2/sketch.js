@@ -17,7 +17,7 @@ const FADE_SPEED = 0.02;
 // Initialization animation state
 let isInitializing = true;
 let initRectangleIndex = 0;
-let initRectangleDelay = 5; // Frames between each rectangle appearing
+let initRectangleDelay = 3; // Frames between each rectangle appearing
 let initFrameCounter = 0;
 let initCarStarted = false;
 
@@ -32,7 +32,7 @@ let hasLoggedCompletion = false;
 
 // Function to create a new car at the start
 function createNewCar() {
-  const newCar = new Voiture(0, 0, canvas.width / 13);
+  const newCar = new Voiture(0, 0, canvas.width / 12);
   const targetPosition = canvas.width / 6.4;
   const slideDistance = 300; // Distance to slide from
   newCar.initSlideIn(targetPosition, slideDistance);
@@ -129,7 +129,7 @@ function display(dt) {
     for (
       let i = 0;
       i < Math.min(initRectangleIndex, newPath.points.length);
-      i++
+      i += 2
     ) {
       const angle = (newPath.rots[i] + newPath.rots[i + 1]) / 2;
 
@@ -138,7 +138,7 @@ function display(dt) {
       ctx.rotate(angle);
 
       ctx.beginPath();
-      ctx.rect(-10, -4, 20, 8);
+      ctx.rect(-10, -4, 38 * 1.2, 10 * 1.2);
       ctx.fillStyle = "white";
       ctx.fill();
 

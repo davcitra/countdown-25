@@ -1,44 +1,94 @@
-import { createEngine } from "../_shared/engine.js"
-import { Spring } from "../_shared/spring.js"
+import { createEngine } from "../_shared/engine.js";
+import Fleur from "./fleur.js";
 
-const { renderer, input, math, run, finish, } = createEngine()
-const { ctx, canvas } = renderer
-run(update)
+const { renderer, input, math, run, finish } = createEngine();
+const { ctx, canvas } = renderer;
 
-const spring = new Spring({
-	position: -canvas.width,
-	frequency: 0.50,
-	halfLife: 0.3
-})
+let flower = null;
 
+// Mouse tracking for slicing
+let isMouseDown = false;
+let mouseStartX = 0;
+let mouseStartY = 0;
+let mouseCurrentX = 0;
+let mouseCurrentY = 0;
+let slicePath = [];
 
-function update(dt) {
+run(display);
 
-	if (input.isPressed()) {
-		spring.target = canvas.width
-	}
-	else {
-		spring.target = 0
-	}
+canvas.addEventListener("mousedown", handleMouseDown);
+canvas.addEventListener("mousemove", handleMouseMove);
+canvas.addEventListener("mouseup", handleMouseUp);
+canvas.addEventListener("mouseleave", handleMouseUp);
 
-	spring.step(dt)
+function handleMouseDown(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
 
-	const x = canvas.width / 2 + spring.position;
-	const y = canvas.height / 2;
+  mouseStartX = (e.clientX - rect.left) * scaleX;
+  mouseStartY = (e.clientY - rect.top) * scaleY;
+  mouseCurrentX = mouseStartX;
+  mouseCurrentY = mouseStartY;
+  isMouseDown = true;
+  slicePath = [{ x: mouseStartX, y: mouseStartY }];
+}
 
-	ctx.fillStyle = "black"
-	ctx.fillRect(0, 0, canvas.width, canvas.height)
+function handleMouseMove(e) {
+  if (isMouseDown) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
 
-	ctx.fillStyle = "white"
-	ctx.textBaseline = "middle"
-	ctx.font = `${canvas.height}px Helvetica Neue, Helvetica , bold`
-	ctx.textAlign = "center"
-	ctx.translate(x, y)
-	ctx.rotate(math.toRadian(-spring.velocity * 0.03))
-	ctx.fillText("1", 0, 0)
+    mouseCurrentX = (e.clientX - rect.left) * scaleX;
+    mouseCurrentY = (e.clientY - rect.top) * scaleY;
+    slicePath.push({ x: mouseCurrentX, y: mouseCurrentY });
+  }
+}
 
-	if (spring.position >= canvas.width - 10) {
-		finish()
-	}
+function handleMouseUp(e) {
+  if (isMouseDown && flower) {
+    for (let i = 0; i < slicePath.length - 1; i++) {
+      const start = slicePath[i];
+      const end = slicePath[i + 1];
+      flower.checkSlice(start.x, start.y, end.x, end.y);
+    }
+  }
 
+  isMouseDown = false;
+  slicePath = [];
+}
+
+function display(dt) {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const size = canvas.height * 0.8;
+
+  if (flower === null) {
+    flower = new Fleur(
+      canvas.width / 2,
+      canvas.height / 2 + (canvas.height - size) / 2,
+      size
+    );
+    console.log("flower created");
+  }
+
+  flower.update(canvas.height);
+  flower.draw(ctx);
+
+  // Draw slice path while dragging
+  if (isMouseDown && slicePath.length > 1 && !flower.gardeningComplete) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(slicePath[0].x, slicePath[0].y);
+    for (let i = 1; i < slicePath.length; i++) {
+      ctx.lineTo(slicePath[i].x, slicePath[i].y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
 }

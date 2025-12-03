@@ -146,7 +146,7 @@ export default class Path2 {
     if (this.loaded) {
       ctx.save();
 
-      for (let i = 0; i < this.points.length; i++) {
+      for (let i = 0; i < this.points.length; i += 2) {
         const angle = (this.rots[i] + this.rots[i + 1]) / 2;
 
         ctx.save();
@@ -154,7 +154,7 @@ export default class Path2 {
         ctx.rotate(angle);
 
         ctx.beginPath();
-        ctx.rect(-10, -4, 20, 8);
+        ctx.rect(-10, -4, 38 * 1.2, 10 * 1.2);
         ctx.fillStyle = "white";
         ctx.fill();
 

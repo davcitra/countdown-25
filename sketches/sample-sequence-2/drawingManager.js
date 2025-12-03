@@ -4,10 +4,10 @@ export default class DrawingManager {
     this.canvas = canvas;
 
     // Drawing zone definitions - as percentages (0 to 1)
-    this.DRAW_ZONE_START_PERCENT = 0.29;
-    this.DRAW_ZONE_END_PERCENT = 0.45;
-    this.DRAW_ZONE_2_START_PERCENT = 0.565;
-    this.DRAW_ZONE_2_END_PERCENT = 0.62;
+    this.DRAW_ZONE_START_PERCENT = 0.275;
+    this.DRAW_ZONE_END_PERCENT = 0.4351;
+    this.DRAW_ZONE_2_START_PERCENT = 0.5605;
+    this.DRAW_ZONE_2_END_PERCENT = 0.625;
 
     // Tolerance for zone completion (in pixels)
     this.COMPLETION_TOLERANCE = 10;
@@ -135,8 +135,8 @@ export default class DrawingManager {
 
     ctx.save();
     ctx.strokeStyle = "white";
-    ctx.lineWidth = this.canvas.width / 27;
-    ctx.lineCap = "round";
+    ctx.lineWidth = this.canvas.width / 25;
+    ctx.lineCap = "butt";
     ctx.lineJoin = "round";
 
     this.drawingZones.forEach((zone, zoneIndex) => {

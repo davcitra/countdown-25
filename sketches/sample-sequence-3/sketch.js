@@ -54,7 +54,7 @@ let controllingRightSide = null; // Track which side we're controlling
 let hasMovedToThreeQuarters = false; // Track if emojis have moved to 3/4
 
 const LOVE_DISTANCE = 333; // Distance between emojis in love mode (size/3 * 2)
-const KISS_DELAY = 2000; // 2 second delay before allowing click
+const KISS_DELAY = 1000; // 2 second delay before allowing click
 
 function handleMouseDown(event) {
   // Don't allow interaction until both emojis finish sliding in
@@ -145,19 +145,6 @@ function handleMouseMove(event) {
 
 function handleMouseUp(event) {
   // If emojis have moved to 3/4, trigger slide out on release
-  if (
-    hasMovedToThreeQuarters &&
-    (emoji_1.isSeparating || emoji_2.isSeparating)
-  ) {
-    emoji_1.slideOut();
-    emoji_2.slideOut();
-
-    // Call finish after a delay to let the animation complete
-    setTimeout(() => {
-      // finish();
-    }, 3000);
-    return;
-  }
 
   isDragging = false;
   controllingRightSide = null;
@@ -259,4 +246,10 @@ function display() {
 
   emoji_1.draw();
   emoji_2.draw();
+
+  if (emoji_2.end() == true) {
+    setTimeout(() => {
+      // finish();
+    }, 3000);
+  }
 }

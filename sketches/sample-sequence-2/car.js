@@ -3,7 +3,7 @@ export default class Voiture {
     this.x = x;
     this.y = y;
     this.width = width;
-    this.height = (1080 / 1560.7) * width;
+    this.height = (1019.5786 / 1511.9727) * width;
     this.angle = 0;
     this.positionAlongPath = 0;
     this.isMoving = false;

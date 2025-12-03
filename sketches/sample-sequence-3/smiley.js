@@ -84,7 +84,7 @@ export default class Emoji {
     if (this.emoji === 1) {
       this.targetX = threeQuarterWidth + this.canvas.width / 6 / 2;
     } else {
-      this.targetX = threeQuarterWidth - this.canvas.width / 6 / 2;
+      this.targetX = threeQuarterWidth + this.canvas.width / 6 / 2 - 333;
     }
   }
 
@@ -166,7 +166,7 @@ export default class Emoji {
 
       // Check if we've reached the initial position (within tolerance for early interaction)
       const distToInitial = Math.abs(this.positionX - this.initialX);
-      if (distToInitial < 100) {
+      if (distToInitial < 10) {
         // Increased tolerance from 1 to 100 for early interaction
         this.positionX = this.initialX;
         this.positionY = this.initialY;
@@ -216,7 +216,7 @@ export default class Emoji {
         this.colonOpacity = Math.max(0, this.colonOpacity - 0.02);
 
         // Scale up the '3' with easing as it returns to center
-        const targetScale = 3.0; // Scale to 3x size
+        const targetScale = 2.5; // Scale to 3x size
         this.threeScale += (targetScale - this.threeScale) * 0.05; // Smooth easing
       }
 
@@ -283,6 +283,12 @@ export default class Emoji {
     while (rotDiff > Math.PI) rotDiff -= 2 * Math.PI;
     while (rotDiff < -Math.PI) rotDiff += 2 * Math.PI;
     this.rotation += rotDiff * 0.05;
+  }
+
+  end() {
+    if (this.threeScale == targetScale) {
+      return true;
+    }
   }
 
   draw() {
