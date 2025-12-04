@@ -60,7 +60,7 @@ export default class SVG {
     const SVG_HEIGHT = 535.6;
 
     // Scale to 80% of canvas width
-    this.scale = (this.canvas.width * 0.8) / SVG_WIDTH;
+    this.scale = (this.canvas.width * 0.9) / SVG_WIDTH;
     this.scaledWidth = SVG_WIDTH * this.scale;
     this.scaledHeight = SVG_HEIGHT * this.scale;
 
