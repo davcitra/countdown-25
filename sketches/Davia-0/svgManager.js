@@ -59,17 +59,29 @@ export default class SVG {
     const SVG_WIDTH = 1920;
     const SVG_HEIGHT = 535.6;
 
-    // Calculate scale to fit canvas width
-    this.scale = this.canvas.width / SVG_WIDTH;
+    // Scale to 80% of canvas width
+    this.scale = (this.canvas.width * 0.8) / SVG_WIDTH;
+    this.scaledWidth = SVG_WIDTH * this.scale;
     this.scaledHeight = SVG_HEIGHT * this.scale;
 
-    // Center the SVG vertically
+    // Center the SVG in the canvas
+    this.offsetX = (this.canvas.width - this.scaledWidth) / 2;
     this.offsetY = (this.canvas.height - this.scaledHeight) / 2;
 
+    // Calculate circle center in original SVG coordinates
+    const circleCenterXOriginal =
+      this.elementBounds.cercle.x + this.elementBounds.cercle.width / 2;
+    const circleCenterYOriginal =
+      this.elementBounds.cercle.y + this.elementBounds.cercle.height / 2;
+
+    // Calculate circle center position in canvas coordinates (this is our rotation point)
+    this.rotationCenterX = this.offsetX + circleCenterXOriginal * this.scale;
+    this.rotationCenterY = this.offsetY + circleCenterYOriginal * this.scale;
+
     // Store initial positions
-    this.initialPositions.bgauche.x = 0;
+    this.initialPositions.bgauche.x = this.offsetX;
     this.initialPositions.bgauche.y = this.offsetY;
-    this.initialPositions.bdroite.x = 0;
+    this.initialPositions.bdroite.x = this.offsetX;
     this.initialPositions.bdroite.y = this.offsetY;
   }
 
@@ -80,17 +92,17 @@ export default class SVG {
     const SVG_HEIGHT = 535.6;
 
     // Calculate dimensions
-    const width = this.canvas.width;
-    const height = SVG_HEIGHT * this.scale;
+    const width = this.scaledWidth;
+    const height = this.scaledHeight;
 
-    // Rotate around canvas center
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
+    // Rotate around circle center (fixed position from angle=0, rotation=0)
+    const centerX = this.rotationCenterX;
+    const centerY = this.rotationCenterY;
 
     // Draw order: static elements first, then animated ones
     const staticElements = ["metre", "cercle", "rectangle"];
 
-    // Draw static elements with rotation around canvas center
+    // Draw static elements with rotation around circle center
     staticElements.forEach((name) => {
       const img = this.svgs.get(name);
       if (img) {
@@ -98,7 +110,7 @@ export default class SVG {
         this.ctx.translate(centerX, centerY);
         this.ctx.rotate(rotation);
         this.ctx.translate(-centerX, -centerY);
-        this.ctx.drawImage(img, 0, this.offsetY, width, height);
+        this.ctx.drawImage(img, this.offsetX, this.offsetY, width, height);
         this.ctx.restore();
       }
     });
