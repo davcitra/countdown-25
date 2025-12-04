@@ -252,7 +252,7 @@ export default class Emoji {
 
     this.ctx.fillStyle = "white";
     this.ctx.textBaseline = "middle";
-    this.ctx.font = `${this.size}px Helvetica Neue, Helvetica, bold`;
+    this.ctx.font = `bold ${this.size}px "Myriad Pro", sans-serif`;
     this.ctx.textAlign = "center";
 
     let face = ":)";
