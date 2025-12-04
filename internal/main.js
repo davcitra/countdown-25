@@ -14,12 +14,12 @@ try {
 if (sequenceData) {
   sequenceData.forEach((s) => {
     let nextNum = Number.parseInt(s.content) - 1;
-    if (nextNum < 0) nextNum = 0;
+    if (nextNum < 0) nextNum = 3;
     s.nextContent = nextNum.toString();
   });
 
   //console.log(sequenceData);
-  const runner = new SequenceRunner(sequenceData, "0");
+  const runner = new SequenceRunner(sequenceData, "3");
 
   initMenu(runner);
   initTransitionUI(runner);

@@ -42,6 +42,11 @@ let secondScaleStartTime = 0;
 const SECOND_SCALE_DURATION = 1000; // 1 second for second scale
 let animationComplete = false;
 
+let bdroiteOffsetY = 0;
+let bdroiteOffsetYVelocity = 0;
+let bgaucheOffsetX = 0;
+let bgaucheOffsetXVelocity = 0;
+
 // Load SVGs
 svg.loadAll();
 
@@ -102,25 +107,18 @@ function handleMouseMove(e) {
   warningLines.checkBottomLimit(newRotation, rotation);
 
   // Clamp rotation between 0 and PI/2
-  rotation = Math.max(0, Math.min(Math.PI / 2, newRotation));
+  rotation = newRotation;
+  //rotation = Math.max(0, Math.min(Math.PI / 2, newRotation));
 
   // Update angle to match rotation
   angle = (rotation / (Math.PI / 2)) * 90;
-
-  // Check if reached end state (angle = 0)
-  if (angle <= 0.1 && !isAtEndState) {
-    isAtEndState = true;
-    endStateTime = Date.now();
-    angle = 0;
-    rotation = 0;
-  }
 }
 
 function handleMouseUp() {
   isDragging = false;
 }
 
-function display() {
+function display(dt) {
   // Clear canvas with black background
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -130,15 +128,48 @@ function display() {
   // Calculate amplitude scaled to match SVG scale
   const AMPLITUDE = BASE_AMPLITUDE * svg.scale;
 
+  // Check if reached end state (angle = 0)
+  if (
+    Math.abs(angle) < 1 &&
+    Math.abs(bgaucheOffsetX) <= AMPLITUDE / 100 &&
+    Math.abs(bgaucheOffsetXVelocity) < 10 &&
+    !isAtEndState
+  ) {
+    isAtEndState = true;
+    endStateTime = Date.now();
+    angle = 0;
+    rotation = 0;
+  }
+
   // Convert angle to radians for offset calculations
   const angleRad = (angle * Math.PI) / 180;
 
   // Calculate offsets based on angle:
   // bdroite: angle=0 -> min position (-AMPLITUDE), angle=90 -> initial position (0)
-  const bdroiteOffsetY = -AMPLITUDE + Math.sin(angleRad) * AMPLITUDE;
+
+  if (isAtEndState) {
+    bgaucheOffsetXVelocity = 0;
+    bdroiteOffsetYVelocity = 0;
+  }
+
+  bdroiteOffsetYVelocity += -Math.cos(angleRad) * dt * 100;
+
+  bdroiteOffsetY += bdroiteOffsetYVelocity * dt;
+  if (bdroiteOffsetY < -AMPLITUDE || bdroiteOffsetY > AMPLITUDE) {
+    bdroiteOffsetYVelocity = 0;
+    bdroiteOffsetY = math.clamp(bdroiteOffsetY, -AMPLITUDE, AMPLITUDE);
+  }
+  //const bdroiteOffsetY = -AMPLITUDE + Math.sin(angleRad) * AMPLITUDE;
 
   // bgauche: angle=0 -> initial position (0), angle=90 -> min position (-AMPLITUDE)
-  const bgaucheOffsetX = -Math.sin(angleRad) * AMPLITUDE;
+
+  bgaucheOffsetXVelocity += -Math.sin(angleRad) * dt * 100;
+  bgaucheOffsetX += bgaucheOffsetXVelocity * dt;
+  if (bgaucheOffsetX < -AMPLITUDE || bgaucheOffsetX > AMPLITUDE) {
+    bgaucheOffsetXVelocity = 0;
+    bgaucheOffsetX = math.clamp(bgaucheOffsetX, -AMPLITUDE, AMPLITUDE);
+  }
+  //const bgaucheOffsetX = -Math.sin(angleRad) * AMPLITUDE;
 
   // Handle end state animation
   if (isAtEndState) {

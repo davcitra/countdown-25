@@ -4,7 +4,7 @@ import Path from "./path.js";
 import Path2 from "./path2.js";
 import DrawingManager from "./drawingManager.js";
 
-const { renderer, run, finish } = createEngine();
+const { renderer, run, finish, audio } = createEngine();
 const { ctx, canvas } = renderer;
 
 // Speed threshold constant
@@ -32,7 +32,7 @@ let hasLoggedCompletion = false;
 
 // Function to create a new car at the start
 function createNewCar() {
-  const newCar = new Voiture(0, 0, canvas.width / 12);
+  const newCar = new Voiture(0, 0, canvas.width / 12, motorSoundInstance);
   const targetPosition = canvas.width / 6.4;
   const slideDistance = 300; // Distance to slide from
   newCar.initSlideIn(targetPosition, slideDistance);
@@ -54,8 +54,21 @@ newPath.loadPath("path.svg").then(() => {
   }
 });
 
-// Start the animation loop
-run(display);
+let motorSound;
+let motorSoundInstance;
+async function preload() {
+  motorSound = await audio.load({
+    src: "loop.mp3",
+    loop: true,
+  });
+
+  motorSoundInstance = motorSound.play();
+  motorSoundInstance.setVolume(0);
+  // Start the animation loop
+  run(display);
+}
+
+preload();
 
 // Track mouse state
 let isMouseDown = false;
