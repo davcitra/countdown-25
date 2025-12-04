@@ -2,16 +2,16 @@ import { createEngine } from "../_shared/engine.js";
 import Emoji from "./smiley.js";
 import Particle from "./particles.js";
 
-// Load custom font
-const fontFace = new FontFace("Myriad Pro", "url(./MyriadPro-Regular.otf)");
-fontFace
-  .load()
-  .then((loadedFont) => {
-    document.fonts.add(loadedFont);
-  })
-  .catch((error) => {
-    console.error("Font loading failed:", error);
-  });
+// // Load custom font
+// const fontFace = new FontFace("Myriad Pro", "./MyriadPro-Regular.otf");
+// fontFace
+//   .load()
+//   .then((loadedFont) => {
+//     document.fonts.add(loadedFont);
+//   })
+//   .catch((error) => {
+//     console.error("Font loading failed:", error);
+//   });
 
 const { renderer, run, math, finish } = createEngine();
 const { ctx, canvas } = renderer;

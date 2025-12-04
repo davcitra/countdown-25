@@ -5,7 +5,7 @@ export default class Particle {
     this.vx = (Math.random() - 0.5) * 20;
     this.vy = (Math.random() - 0.5) * 20;
     this.life = 2.0;
-    this.decay = 0.015;
+    this.decay = 0.05;
     this.size = size; // Same size as emojis
   }
 
@@ -19,7 +19,7 @@ export default class Particle {
     ctx.save();
     ctx.globalAlpha = this.life / 2;
     ctx.fillStyle = "red"; // Same color as emojis
-    ctx.font = `bold ${this.size}px "Myriad Pro", sans-serif`;
+    ctx.font = `bold ${this.size}px "Helvetica Neue", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("*", this.x, this.y);

@@ -27,8 +27,8 @@ export default class Emoji {
 
     this.targetX = this.positionX;
     this.targetY = this.positionY;
-    this.smoothing = 0.03;
-    this.mirroredSmoothing = 0.015;
+    this.smoothing = 0.08;
+    this.mirroredSmoothing = 0.05;
     this.currentSmoothing = this.smoothing;
     this.snapSmoothing = 0.25;
     this.isWinking = false;
@@ -133,7 +133,7 @@ export default class Emoji {
 
   update() {
     if (this.isAnimatingIn) {
-      const slideSpeed = 0.03;
+      const slideSpeed = 0.3;
       this.positionX += (this.initialX - this.positionX) * slideSpeed;
       this.positionY += (this.initialY - this.positionY) * slideSpeed;
 
@@ -177,7 +177,7 @@ export default class Emoji {
     }
 
     if (this.isFallingOut) {
-      this.fallVelocity += 0.5;
+      this.fallVelocity += 3;
       this.positionY += this.fallVelocity;
       return;
     }
@@ -194,8 +194,8 @@ export default class Emoji {
           this.colonOpacity = 0;
         }
 
-        const targetScale = 2.5;
-        this.threeScale += (targetScale - this.threeScale) * 0.05;
+        const targetScale = 3;
+        this.threeScale += (targetScale - this.threeScale) * 0.2;
       }
 
       if (
@@ -252,7 +252,7 @@ export default class Emoji {
 
     this.ctx.fillStyle = "white";
     this.ctx.textBaseline = "middle";
-    this.ctx.font = `bold ${this.size}px "Myriad Pro", sans-serif`;
+    this.ctx.font = `${this.size}px "Helvetica Neue", sans-serif`;
     this.ctx.textAlign = "center";
 
     let face = ":)";

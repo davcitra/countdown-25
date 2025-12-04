@@ -100,8 +100,8 @@ function display(dt) {
     !flower.gardeningComplete
   ) {
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
-    ctx.lineWidth = 50;
+    ctx.strokeStyle = "rgba(255, 0, 0, 1)";
+    ctx.lineWidth = 25;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(slicePath[0].x, slicePath[0].y);
