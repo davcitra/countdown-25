@@ -6,6 +6,9 @@ const { ctx, canvas } = renderer;
 
 let flower = null;
 
+// Track if we've logged the final fall
+let finalFallLogged = false;
+
 // Mouse tracking for slicing
 let isMouseDown = false;
 let mouseStartX = 0;
@@ -77,6 +80,17 @@ function display(dt) {
 
   flower.update(canvas.height);
   flower.draw(ctx);
+
+  // Check if final flower has fallen out of window
+  if (
+    !finalFallLogged &&
+    flower.finalFalling &&
+    flower.y > canvas.height + flower.height
+  ) {
+    finalFallLogged = true;
+    console.log("Final flower has fallen out of the window!");
+    finish();
+  }
 
   // Draw slice path while dragging (only if not rising and not complete)
   if (
