@@ -84,6 +84,7 @@ export default class Voiture {
     } else {
       this.speed *= 0.98;
     }
+    console.log(this.speed);
 
     this.motorSoundInstance.setVolume(math.mapClamped(this.speed, 0, 23, 0, 1));
     this.motorSoundInstance.setRate(
