@@ -16,10 +16,10 @@ export default class Emoji {
     }
 
     if (this.emoji === 1) {
-      this.positionX = this.canvas.width + this.size;
+      this.positionX = this.canvas.width + this.size * 2;
       this.positionY = this.initialY;
     } else {
-      this.positionX = -this.size;
+      this.positionX = -this.size * 2;
       this.positionY = this.initialY;
     }
 
@@ -42,6 +42,8 @@ export default class Emoji {
     this.isSlidingOut = false;
     this.colonOpacity = 1.0;
     this.threeScale = 1.0;
+    this.isFallingOut = false;
+    this.fallVelocity = 0;
 
     this.rotation = 0;
     this.targetRotation = 0;
@@ -80,6 +82,15 @@ export default class Emoji {
       this.targetX = this.canvas.width / 2;
       this.targetY = this.canvas.height / 2;
     }
+  }
+
+  startFalling() {
+    this.isFallingOut = true;
+    this.fallVelocity = 0;
+  }
+
+  isCompletelyOffScreen() {
+    return this.positionY > this.canvas.height + this.size;
   }
 
   isCurrentlyWinking() {
@@ -165,13 +176,23 @@ export default class Emoji {
       return;
     }
 
+    if (this.isFallingOut) {
+      this.fallVelocity += 0.5;
+      this.positionY += this.fallVelocity;
+      return;
+    }
+
     if (this.isSeparating || this.isSlidingOut) {
       const speed = this.isSlidingOut ? 0.05 : 0.1;
       this.positionX += (this.targetX - this.positionX) * speed;
       this.positionY += (this.targetY - this.positionY) * speed;
 
       if (this.isSlidingOut && this.emoji === -1) {
-        this.colonOpacity = Math.max(0, this.colonOpacity - 0.02);
+        // Make ":" disappear instantly when "3" reaches center
+        const atCenter = Math.abs(this.positionY - this.canvas.height / 2) < 10;
+        if (atCenter) {
+          this.colonOpacity = 0;
+        }
 
         const targetScale = 2.5;
         this.threeScale += (targetScale - this.threeScale) * 0.05;
@@ -252,7 +273,10 @@ export default class Emoji {
 
     if (this.emoji === -1 && face === ":3" && this.colonOpacity < 1) {
       this.ctx.globalAlpha = this.colonOpacity;
-      this.ctx.fillText(":", -this.size * 0.125, 0);
+      this.ctx.save();
+      this.ctx.scale(this.threeScale, this.threeScale);
+      this.ctx.fillText(":", (-this.size * 0.125) / this.threeScale, 0);
+      this.ctx.restore();
 
       this.ctx.globalAlpha = 1.0;
       this.ctx.save();

@@ -2,7 +2,7 @@ import { createEngine } from "../_shared/engine.js";
 import Emoji from "./smiley.js";
 import Particle from "./particles.js";
 
-const { renderer, run, math } = createEngine();
+const { renderer, run, math, finish } = createEngine();
 const { ctx, canvas } = renderer;
 run(display);
 const size = 500;
@@ -45,6 +45,9 @@ function createExplosion(emoji1, emoji2, size) {
 let isDragging = false;
 let controllingRightSide = null;
 let hasMovedToThreeQuarters = false;
+let threeFullyScaledTime = null;
+let threeFalling = false;
+let hasLoggedFallComplete = false;
 
 const LOVE_DISTANCE = 333;
 const KISS_DELAY = 1000;
@@ -189,6 +192,32 @@ function display() {
     } else {
       particles[i].draw(ctx);
     }
+  }
+
+  // Check if the "3" is fully scaled (target is 2.5)
+  if (emoji_2.threeScale >= 2.49 && !threeFullyScaledTime) {
+    threeFullyScaledTime = Date.now();
+  }
+
+  // After 1 second of being fully scaled, make the 3 fall
+  if (threeFullyScaledTime && !threeFalling) {
+    const timeSinceFullyScaled = Date.now() - threeFullyScaledTime;
+    if (timeSinceFullyScaled >= 500) {
+      emoji_2.startFalling();
+      threeFalling = true;
+      console.log("The 3 is falling!");
+    }
+  }
+
+  // Check if 3 has fallen off screen
+  if (
+    threeFalling &&
+    !hasLoggedFallComplete &&
+    emoji_2.isCompletelyOffScreen()
+  ) {
+    console.log("The 3 has fallen out of the screen!");
+    // hasLoggedFallComplete = true;
+    finish();
   }
 
   emoji_1.draw();

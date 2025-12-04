@@ -1,52 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Countdown</title>
+    <link href="./internal/main.css" rel="stylesheet" />
+  </head>
 
-  <title>Countdown</title>
-  <link href="./internal/main.css" rel="stylesheet">
-</head>
+  <body>
+    <!-- <div id="authorName"></div> -->
 
-<body>
-  <div id="authorName"></div>
-
-  <div id="index" data-toggle-menu>...</div>
-  <div id="menu" class="hidden min-safe-h-screen">
-    <div class="menu-fade" data-toggle-menu></div>
-    <div class="menu-container min-safe-h-screen">
-      <div class="inner min-safe-h-screen">
-        <div class="p-2">
-          <div class="flex title">
-            <div>Countdown</div>
-            <div class="link" data-toggle-menu>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24px" height="24px"
-                fill="currentColor">
-                <path d="M0 0h24v24H0z" fill="none" />
-                <path
-                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-              </svg>
+    <!-- <div id="index" data-toggle-menu>...</div> -->
+    <div id="menu" class="hidden min-safe-h-screen">
+      <div class="menu-fade" data-toggle-menu></div>
+      <div class="menu-container min-safe-h-screen">
+        <div class="inner min-safe-h-screen">
+          <div class="p-2">
+            <div class="flex title">
+              <div>Countdown</div>
+              <div class="link" data-toggle-menu>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24px"
+                  height="24px"
+                  fill="currentColor"
+                >
+                  <path d="M0 0h24v24H0z" fill="none" />
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
-          <div id="authorList"></div>
-          <div id="credits">
-            ECAL / BA Media & Interaction Design
-            <br />
-            Workshop – December 2025
+            <div id="authorList"></div>
+            <div id="credits">
+              ECAL / BA Media & Interaction Design
+              <br />
+              Workshop – December 2025
+            </div>
           </div>
         </div>
       </div>
+      <div class="menu-outside"></div>
     </div>
-    <div class="menu-outside"></div>
-  </div>
 
-  <main class="min-safe-h-screen"></main>
-  <div class="debug"></div>
+    <main class="min-safe-h-screen"></main>
+    <div class="debug"></div>
 
-  <script src="./internal/main.js" type="module">  </script>
-</body>
-
+    <script src="./internal/main.js" type="module"></script>
+  </body>
 </html>
