@@ -1,12 +1,14 @@
 import { createEngine } from "../_shared/engine.js";
 import { createSpringSettings, Spring } from "../_shared/spring.js";
 import SVG from "./svgManager.js";
+import WarningLines from "./warningLines.js";
 
 const { renderer, input, math, run, finish } = createEngine();
 const { ctx, canvas } = renderer;
 
 // Initialize SVG manager with renderer
 const svg = new SVG(renderer);
+const warningLines = new WarningLines(ctx, canvas);
 let finished = false;
 
 // Animation configuration
@@ -23,6 +25,12 @@ let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let dragStartRotation = 0;
+
+// End state animation
+let isAtEndState = false;
+let endStateTime = 0;
+let translationX = 0;
+let translationY = 0;
 
 // Load SVGs
 svg.loadAll();
@@ -50,7 +58,7 @@ function handleMouseDown(e) {
 }
 
 function handleMouseMove(e) {
-  if (!isDragging || !svg.loaded) return;
+  if (!isDragging || !svg.loaded || isAtEndState) return;
 
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
@@ -76,14 +84,26 @@ function handleMouseMove(e) {
   if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
   if (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
 
-  // Calculate new rotation
-  rotation = dragStartRotation + angleDelta;
+  // Calculate new rotation (unclamped for warning detection)
+  let newRotation = dragStartRotation + angleDelta;
+
+  // Check for limit warnings using WarningLines class
+  warningLines.checkTopLimit(newRotation, rotation);
+  warningLines.checkBottomLimit(newRotation, rotation);
 
   // Clamp rotation between 0 and PI/2
-  rotation = Math.max(0, Math.min(Math.PI / 2, rotation));
+  rotation = Math.max(0, Math.min(Math.PI / 2, newRotation));
 
   // Update angle to match rotation
   angle = (rotation / (Math.PI / 2)) * 90;
+
+  // Check if reached end state (angle = 0)
+  if (angle <= 0.1 && !isAtEndState) {
+    isAtEndState = true;
+    endStateTime = Date.now();
+    angle = 0;
+    rotation = 0;
+  }
 }
 
 function handleMouseUp() {
@@ -110,8 +130,41 @@ function display() {
   // bgauche: angle=0 -> initial position (0), angle=90 -> min position (-AMPLITUDE)
   const bgaucheOffsetX = -Math.sin(angleRad) * AMPLITUDE;
 
-  // Draw SVGs with offsets and rotation
-  svg.draw(bgaucheOffsetX, bdroiteOffsetY, rotation);
+  // Handle end state animation
+  if (isAtEndState) {
+    const timeSinceEnd = Date.now() - endStateTime;
+
+    if (timeSinceEnd >= 1500) {
+      // After 1.5 seconds, calculate translation to center bdroite
+      // bdroite center in original SVG coordinates
+      const bdroiteCenterX =
+        svg.elementBounds.bdroite.x + svg.elementBounds.bdroite.width / 2;
+      const bdroiteCenterY =
+        svg.elementBounds.bdroite.y + svg.elementBounds.bdroite.height / 2;
+
+      // bdroite current position on canvas
+      const bdroiteCurrentX =
+        svg.offsetX + bdroiteCenterX * svg.scale + bgaucheOffsetX;
+      const bdroiteCurrentY =
+        svg.offsetY + bdroiteCenterY * svg.scale + bdroiteOffsetY;
+
+      // Calculate translation needed to center bdroite
+      translationX = canvas.width / 2 - bdroiteCurrentX;
+      translationY = canvas.height / 2 - bdroiteCurrentY;
+    }
+  }
+
+  // Draw SVGs with offsets, rotation, and translation
+  svg.draw(
+    bgaucheOffsetX,
+    bdroiteOffsetY,
+    rotation,
+    translationX,
+    translationY
+  );
+
+  // Draw warning lines
+  // warningLines.draw(svg);
 
   // Increment time for animation
   time++;
