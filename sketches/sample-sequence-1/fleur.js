@@ -1,7 +1,8 @@
 export default class Fleur {
-  constructor(x, y, height) {
+  constructor(x, y, height, canvasHeight) {
     this.x = x;
-    this.y = y;
+    this.targetY = y; // Store the target position
+    this.y = canvasHeight + height; // Start below the screen
     this.height = height;
     this.width = (852.5 / 912.1) * height;
 
@@ -81,17 +82,28 @@ export default class Fleur {
     this.angularDamping = 0.98;
 
     // Animation states
+    this.rising = true;
+    this.riseSpeed = 0;
     this.gardeningComplete = false;
     this.stemCentering = false;
     this.stemCentered = false;
     this.finalFlowerAppearing = false;
     this.finalFlowerOpacity = 0;
+    this.finalFlowerVisible = false;
+    this.finalDelay = 0;
+    this.finalFalling = false;
+    this.finalFallVelocity = 0;
+    this.finalFallRotation = 0;
+    this.finalFallRotationSpeed = 0;
 
     // Store target position
     this.targetCenterY = 0;
     this.centeringSpeed = 0;
     this.centeringDelay = 0;
     this.fadeInSpeed = 0.02;
+
+    // Calculate rise speed
+    this.riseSpeed = (this.y - this.targetY) / 90; // 90 frames to rise
   }
 
   get loaded() {
@@ -123,11 +135,11 @@ export default class Fleur {
   }
 
   // Start the centering animation
-  startCentering(canvasHeight) {
+  startCentering(canvasHeight, size) {
     if (!this.gardeningComplete) {
       this.gardeningComplete = true;
       this.stemCentering = true;
-      this.targetCenterY = canvasHeight / 2 - this.height / 6;
+      this.targetCenterY = canvasHeight / 2 - (canvasHeight - size) / 2;
       this.centeringSpeed = (this.targetCenterY - this.y) / 60;
       console.log("Gardening complete! Centering stem...");
     }
@@ -190,14 +202,14 @@ export default class Fleur {
   }
 
   // Detach a layer and give it initial velocity based on slice direction
-  detachLayer(layerName, sliceVelocityX, sliceVelocityY) {
+  detachLayer(layerName, sliceVelocityX, sliceVelocityY, ctx) {
     if (layerName === "fleur" && !this.fleurDetached) {
       this.fleurDetached = true;
       this.fleurVelocity = {
         x: sliceVelocityX * 0.05,
         y: sliceVelocityY * 0.05,
       };
-      this.fleurAngularVelocity = (Math.random() - 0.5) * 0.2;
+      this.fleurAngularVelocity = (Math.random() - 0.5) * 0.15;
       console.log("Fleur detached!");
     } else if (layerName === "leftLeaf" && !this.leftLeafDetached) {
       this.leftLeafDetached = true;
@@ -220,7 +232,19 @@ export default class Fleur {
 
   // Update physics for detached layers
   update(canvasHeight) {
-    // Update falling physics
+    // Initial rise animation
+    if (this.rising) {
+      this.y -= this.riseSpeed;
+
+      if (this.y <= this.targetY) {
+        this.y = this.targetY;
+        this.rising = false;
+        console.log("Plant fully risen!");
+      }
+      return; // Don't process other updates while rising
+    }
+
+    // Update falling physics for detached parts
     if (this.fleurDetached) {
       this.fleurVelocity.y += this.gravity;
       this.fleurOffset.x += this.fleurVelocity.x;
@@ -247,7 +271,7 @@ export default class Fleur {
 
     // Check if all parts have fallen
     if (!this.gardeningComplete && this.checkIfAllFallen(canvasHeight)) {
-      this.startCentering(canvasHeight);
+      this.startCentering(canvasHeight, this.height * 0.9);
     }
 
     // Animate stem centering
@@ -278,16 +302,42 @@ export default class Fleur {
       this.finalFlowerOpacity += this.fadeInSpeed;
       if (this.finalFlowerOpacity >= 1) {
         this.finalFlowerOpacity = 1;
-        console.log("Final flower fully visible!");
+        this.finalFlowerVisible = true;
+        this.finalDelay = 90; // 1 second delay at 60fps
+        console.log("Final flower fully visible! Starting final delay...");
       }
+    }
+
+    // Handle delay before final fall
+    if (this.finalFlowerVisible && this.finalDelay > 0) {
+      this.finalDelay--;
+      if (this.finalDelay === 0) {
+        this.finalFalling = true;
+        this.finalFallRotationSpeed = (Math.random() - 0.5) * 0.1;
+        console.log("Final flower falling!");
+      }
+    }
+
+    // Final falling animation
+    if (this.finalFalling) {
+      this.finalFallVelocity += this.gravity * 1.5; // Fall faster
+      this.y += this.finalFallVelocity;
+      this.finalFallRotation += this.finalFallRotationSpeed;
     }
   }
 
-  drawLayer(ctx, image, offset, rotation, scale) {
+  drawLayer(ctx, image, offset, rotation, scale, isDetached = false) {
     ctx.save();
     ctx.translate(offset.x, offset.y);
     ctx.rotate(rotation);
     ctx.scale(scale, scale);
+
+    // Apply red filter only to detached parts
+    if (isDetached) {
+      ctx.filter =
+        "hue-rotate(0deg) saturate(100) brightness(0.2) sepia(2) hue-rotate(-50deg) saturate(10)";
+    }
+
     ctx.drawImage(
       image,
       -this.width / 2,
@@ -302,6 +352,11 @@ export default class Fleur {
     if (this.loaded) {
       ctx.save();
       ctx.translate(this.x, this.y);
+
+      // Apply final fall rotation to everything
+      if (this.finalFalling) {
+        ctx.rotate(this.finalFallRotation);
+      }
 
       // Always draw the stem (1.svg)
       if (this.stemLoaded) {
@@ -321,7 +376,8 @@ export default class Fleur {
           this.leftLeaf,
           this.leftLeafOffset,
           this.leftLeafRotation,
-          this.leftLeafScale
+          this.leftLeafScale,
+          this.leftLeafDetached
         );
       }
 
@@ -331,7 +387,8 @@ export default class Fleur {
           this.rightLeaf,
           this.rightLeafOffset,
           this.rightLeafRotation,
-          this.rightLeafScale
+          this.rightLeafScale,
+          this.rightLeafDetached
         );
       }
 
@@ -341,7 +398,8 @@ export default class Fleur {
           this.fleur,
           this.fleurOffset,
           this.fleurRotation,
-          this.fleurScale
+          this.fleurScale,
+          this.fleurDetached
         );
       }
 

@@ -69,7 +69,8 @@ function display(dt) {
     flower = new Fleur(
       canvas.width / 2,
       canvas.height / 2 + (canvas.height - size) / 2,
-      size
+      size,
+      canvas.height
     );
     console.log("flower created");
   }
@@ -77,8 +78,13 @@ function display(dt) {
   flower.update(canvas.height);
   flower.draw(ctx);
 
-  // Draw slice path while dragging
-  if (isMouseDown && slicePath.length > 1 && !flower.gardeningComplete) {
+  // Draw slice path while dragging (only if not rising and not complete)
+  if (
+    isMouseDown &&
+    slicePath.length > 1 &&
+    !flower.rising &&
+    !flower.gardeningComplete
+  ) {
     ctx.save();
     ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
     ctx.lineWidth = 3;
