@@ -76,59 +76,49 @@ function display() {
     const bgaucheScaledX = bgaucheCenter.x * scale;
     const bdroiteScaledY = bdroiteCenter.y * scale + svg.offsetY;
 
-    console.log("=== RESPONSIVE SCALE INFO ===");
-    console.log(`Canvas Width: ${canvas.width}px`);
-    console.log(`Canvas Height: ${canvas.height}px`);
-    console.log(`SVG Scale Factor: ${scale.toFixed(4)}`);
-    console.log(
-      `Amplitude Scale: ${AMPLITUDE_SCALE.toFixed(4)} (${(
-        AMPLITUDE_SCALE * 100
-      ).toFixed(2)}% of canvas height)`
-    );
-    console.log(`Calculated Amplitude: ${AMPLITUDE.toFixed(2)}px`);
+    // console.log("=== RESPONSIVE SCALE INFO ===");
+    // console.log(`Canvas Width: ${canvas.width}px`);
+    // console.log(`Canvas Height: ${canvas.height}px`);
+    // console.log(`SVG Scale Factor: ${scale.toFixed(4)}`);
+    // console.log(
+    //   `Amplitude Scale: ${AMPLITUDE_SCALE.toFixed(4)} (${(
+    //     AMPLITUDE_SCALE * 100
+    //   ).toFixed(2)}% of canvas height)`
+    // );
+    // console.log(`Calculated Amplitude: ${AMPLITUDE.toFixed(2)}px`);
 
-    console.log("\n=== CIRCLE CENTER (Rotation Point) ===");
-    console.log(
-      `Circle Center X: ${svg.rotationCenterX.toFixed(2)}px (3/4 canvas width)`
-    );
-    console.log(
-      `Circle Center Y: ${svg.rotationCenterY.toFixed(2)}px (1/2 canvas height)`
-    );
-    console.log(`Target X: ${((canvas.width * 3) / 4).toFixed(2)}px`);
-    console.log(`Target Y: ${(canvas.height / 2).toFixed(2)}px`);
+    // console.log("\n=== BGAUCHE (horizontal movement) ===");
+    // console.log(`Initial X: ${bgaucheScaledX.toFixed(2)}px`);
+    // console.log(
+    //   `Min X: ${(bgaucheScaledX - AMPLITUDE).toFixed(2)}px (leftmost)`
+    // );
+    // console.log(
+    //   `Max X: ${(bgaucheScaledX + AMPLITUDE).toFixed(2)}px (rightmost)`
+    // );
+    // console.log(
+    //   `Y (constant): ${(bgaucheCenter.y * scale + svg.offsetY).toFixed(2)}px`
+    // );
 
-    console.log("\n=== BGAUCHE (horizontal movement) ===");
-    console.log(`Initial X: ${bgaucheScaledX.toFixed(2)}px`);
-    console.log(
-      `Min X: ${(bgaucheScaledX - AMPLITUDE).toFixed(2)}px (leftmost)`
-    );
-    console.log(
-      `Max X: ${(bgaucheScaledX + AMPLITUDE).toFixed(2)}px (rightmost)`
-    );
-    console.log(
-      `Y (constant): ${(bgaucheCenter.y * scale + svg.offsetY).toFixed(2)}px`
-    );
+    // console.log("\n=== BDROITE (vertical movement) ===");
+    // console.log(`X (constant): ${(bdroiteCenter.x * scale).toFixed(2)}px`);
+    // console.log(`Initial Y: ${bdroiteScaledY.toFixed(2)}px`);
+    // console.log(
+    //   `Min Y: ${(bdroiteScaledY - AMPLITUDE).toFixed(2)}px (topmost)`
+    // );
+    // console.log(
+    //   `Max Y: ${(bdroiteScaledY + AMPLITUDE).toFixed(2)}px (bottommost)`
+    // );
 
-    console.log("\n=== BDROITE (vertical movement) ===");
-    console.log(`X (constant): ${(bdroiteCenter.x * scale).toFixed(2)}px`);
-    console.log(`Initial Y: ${bdroiteScaledY.toFixed(2)}px`);
-    console.log(
-      `Min Y: ${(bdroiteScaledY - AMPLITUDE).toFixed(2)}px (topmost)`
-    );
-    console.log(
-      `Max Y: ${(bdroiteScaledY + AMPLITUDE).toFixed(2)}px (bottommost)`
-    );
-
-    console.log("\n=== MOUSE CONTROL ===");
-    console.log(`Move mouse left to right to control rotation and angle`);
-    console.log(`Mouse left (x=0): rotation=PI/2 (90°), angle=90°`);
-    console.log(`  - bdroite: at initial position`);
-    console.log(`  - bgauche: at min position`);
-    console.log(`Mouse right (x=max): rotation=0°, angle=0°`);
-    console.log(`  - bdroite: at min position`);
-    console.log(`  - bgauche: at initial position`);
-    console.log(`Rotation controls angle: both vary together`);
-    console.log(`All SVGs rotate around circle center`);
+    // console.log("\n=== MOUSE CONTROL ===");
+    // console.log(`Move mouse left to right to control rotation and angle`);
+    // console.log(`Mouse left (x=0): rotation=PI/2 (90°), angle=90°`);
+    // console.log(`  - bdroite: at initial position`);
+    // console.log(`  - bgauche: at min position`);
+    // console.log(`Mouse right (x=max): rotation=0°, angle=0°`);
+    // console.log(`  - bdroite: at min position`);
+    // console.log(`  - bgauche: at initial position`);
+    // console.log(`Rotation controls angle: both vary together`);
+    // console.log(`All SVGs rotate around canvas center`);
 
     positionsLogged = true;
   }

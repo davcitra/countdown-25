@@ -63,29 +63,14 @@ export default class SVG {
     this.scale = this.canvas.width / SVG_WIDTH;
     this.scaledHeight = SVG_HEIGHT * this.scale;
 
-    // Calculate circle center in original SVG coordinates
-    const circleCenterX =
-      this.elementBounds.cercle.x + this.elementBounds.cercle.width / 2;
-    const circleCenterY =
-      this.elementBounds.cercle.y + this.elementBounds.cercle.height / 2;
-
-    // Target position: circle center at 3/4 canvas width, 1/2 canvas height
-    const targetX = (this.canvas.width * 3) / 4;
-    const targetY = this.canvas.height / 2;
-
-    // Calculate offsets needed to position circle center at target
-    this.offsetX = targetX - circleCenterX * this.scale;
-    this.offsetY = targetY - circleCenterY * this.scale;
+    // Center the SVG vertically
+    this.offsetY = (this.canvas.height - this.scaledHeight) / 2;
 
     // Store initial positions
-    this.initialPositions.bgauche.x = this.offsetX;
+    this.initialPositions.bgauche.x = 0;
     this.initialPositions.bgauche.y = this.offsetY;
-    this.initialPositions.bdroite.x = this.offsetX;
+    this.initialPositions.bdroite.x = 0;
     this.initialPositions.bdroite.y = this.offsetY;
-
-    // Store the rotation center (circle center in canvas coordinates)
-    this.rotationCenterX = targetX;
-    this.rotationCenterY = targetY;
   }
 
   draw(bgaucheOffsetX = 0, bdroiteOffsetY = 0, rotation = 0) {
@@ -98,28 +83,27 @@ export default class SVG {
     const width = this.canvas.width;
     const height = SVG_HEIGHT * this.scale;
 
-    // Use circle center as rotation point
-    const centerX = this.rotationCenterX;
-    const centerY = this.rotationCenterY;
+    // Rotate around canvas center
+    const centerX = this.canvas.width / 2;
+    const centerY = this.canvas.height / 2;
 
     // Draw order: static elements first, then animated ones
     const staticElements = ["metre", "cercle", "rectangle"];
 
-    // Draw static elements with rotation around circle center
+    // Draw static elements with rotation around canvas center
     staticElements.forEach((name) => {
       const img = this.svgs.get(name);
       if (img) {
         this.ctx.save();
-        // Translate to circle center, rotate, translate back
         this.ctx.translate(centerX, centerY);
         this.ctx.rotate(rotation);
         this.ctx.translate(-centerX, -centerY);
-        this.ctx.drawImage(img, this.offsetX, this.offsetY, width, height);
+        this.ctx.drawImage(img, 0, this.offsetY, width, height);
         this.ctx.restore();
       }
     });
 
-    // Draw bgauche with horizontal offset and rotation around circle center
+    // Draw bgauche with horizontal offset and rotation
     const bgaucheImg = this.svgs.get("bgauche");
     if (bgaucheImg) {
       this.ctx.save();
@@ -136,7 +120,7 @@ export default class SVG {
       this.ctx.restore();
     }
 
-    // Draw bdroite with vertical offset and rotation around circle center
+    // Draw bdroite with vertical offset and rotation
     const bdroiteImg = this.svgs.get("bdroite");
     if (bdroiteImg) {
       this.ctx.save();
