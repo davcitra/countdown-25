@@ -85,66 +85,99 @@ export default class SVG {
     this.initialPositions.bdroite.y = this.offsetY;
   }
 
-  draw(bgaucheOffsetX = 0, bdroiteOffsetY = 0, rotation = 0) {
+  draw(
+    bgaucheOffsetX = 0,
+    bdroiteOffsetY = 0,
+    rotation = 0,
+    translationX = 0,
+    translationY = 0,
+    scaleMultiplier = 1.0
+  ) {
     if (!this.loaded) return;
 
     const SVG_WIDTH = 1920;
     const SVG_HEIGHT = 535.6;
 
-    // Calculate dimensions
-    const width = this.scaledWidth;
-    const height = this.scaledHeight;
+    // Calculate dimensions with scale multiplier
+    const width = this.scaledWidth * scaleMultiplier;
+    const height = this.scaledHeight * scaleMultiplier;
 
-    // Rotate around circle center (fixed position from angle=0, rotation=0)
-    const centerX = this.rotationCenterX;
-    const centerY = this.rotationCenterY;
+    // Calculate bdroite center position on canvas
+    const bdroiteCenterX =
+      this.elementBounds.bdroite.x + this.elementBounds.bdroite.width / 2;
+    const bdroiteCenterY =
+      this.elementBounds.bdroite.y + this.elementBounds.bdroite.height / 2;
+
+    // bdroite position on canvas (before scaling)
+    const bdroiteCanvasX =
+      this.offsetX + bdroiteCenterX * this.scale + translationX;
+    const bdroiteCanvasY =
+      this.offsetY +
+      bdroiteCenterY * this.scale +
+      bdroiteOffsetY +
+      translationY;
+
+    // Use bdroite center for scaling when scaleMultiplier > 1, otherwise use rotation center
+    const transformCenterX =
+      scaleMultiplier > 1.0 ? bdroiteCanvasX : this.rotationCenterX;
+    const transformCenterY =
+      scaleMultiplier > 1.0 ? bdroiteCanvasY : this.rotationCenterY;
 
     // Draw order: static elements first, then animated ones
     const staticElements = ["metre", "cercle", "rectangle"];
 
-    // Draw static elements with rotation around circle center
+    // Draw static elements with rotation, translation, and scaling from bdroite center
     staticElements.forEach((name) => {
       const img = this.svgs.get(name);
       if (img) {
         this.ctx.save();
-        this.ctx.translate(centerX, centerY);
+        this.ctx.translate(transformCenterX, transformCenterY);
+        this.ctx.scale(scaleMultiplier, scaleMultiplier);
         this.ctx.rotate(rotation);
-        this.ctx.translate(-centerX, -centerY);
-        this.ctx.drawImage(img, this.offsetX, this.offsetY, width, height);
+        this.ctx.translate(-transformCenterX, -transformCenterY);
+        this.ctx.drawImage(
+          img,
+          this.offsetX + translationX,
+          this.offsetY + translationY,
+          this.scaledWidth,
+          this.scaledHeight
+        );
         this.ctx.restore();
       }
     });
 
-    // Draw bgauche with horizontal offset and rotation
+    // Draw bgauche with horizontal offset, rotation, translation, and scaling
     const bgaucheImg = this.svgs.get("bgauche");
     if (bgaucheImg) {
       this.ctx.save();
-      this.ctx.translate(centerX, centerY);
+      this.ctx.translate(transformCenterX, transformCenterY);
+      this.ctx.scale(scaleMultiplier, scaleMultiplier);
       this.ctx.rotate(rotation);
-      this.ctx.translate(-centerX, -centerY);
+      this.ctx.translate(-transformCenterX, -transformCenterY);
       this.ctx.drawImage(
         bgaucheImg,
-        this.initialPositions.bgauche.x + bgaucheOffsetX,
-        this.initialPositions.bgauche.y,
-        width,
-        height
+        this.initialPositions.bgauche.x + bgaucheOffsetX + translationX,
+        this.initialPositions.bgauche.y + translationY,
+        this.scaledWidth,
+        this.scaledHeight
       );
       this.ctx.restore();
     }
 
-    // Draw bdroite with vertical offset and rotation
+    // Draw bdroite with vertical offset, rotation, translation, and scaling
     const bdroiteImg = this.svgs.get("bdroite");
     if (bdroiteImg) {
       this.ctx.save();
-      this.ctx.translate(centerX, centerY);
+      this.ctx.translate(transformCenterX, transformCenterY);
+      this.ctx.scale(scaleMultiplier, scaleMultiplier);
       this.ctx.rotate(rotation);
-      this.ctx.translate(-centerX, -centerY);
+      this.ctx.translate(-transformCenterX, -transformCenterY);
       this.ctx.drawImage(
         bdroiteImg,
-        this.initialPositions.bdroite.x,
-        this.initialPositions.bdroite.y + bdroiteOffsetY,
-        width,
-        height
+        this.initialPositions.bdroite.x + translationX,
+        this.initialPositions.bdroite.y + bdroiteOffsetY + translationY,
+        this.scaledWidth,
+        this.scaledHeight
       );
       this.ctx.restore();
     }

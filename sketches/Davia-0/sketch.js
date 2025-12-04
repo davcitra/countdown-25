@@ -31,6 +31,11 @@ let isAtEndState = false;
 let endStateTime = 0;
 let translationX = 0;
 let translationY = 0;
+let targetTranslationX = 0;
+let targetTranslationY = 0;
+let translationStartTime = 0;
+const TRANSLATION_DURATION = 1000; // 1 second smooth movement
+let scaleMultiplier = 1.0;
 
 // Load SVGs
 svg.loadAll();
@@ -135,32 +140,54 @@ function display() {
     const timeSinceEnd = Date.now() - endStateTime;
 
     if (timeSinceEnd >= 1500) {
-      // After 1.5 seconds, calculate translation to center bdroite
-      // bdroite center in original SVG coordinates
-      const bdroiteCenterX =
-        svg.elementBounds.bdroite.x + svg.elementBounds.bdroite.width / 2;
-      const bdroiteCenterY =
-        svg.elementBounds.bdroite.y + svg.elementBounds.bdroite.height / 2;
+      // After 1.5 seconds, start smooth translation
+      if (targetTranslationX === 0 && targetTranslationY === 0) {
+        // Calculate target translation once
+        // bdroite center in original SVG coordinates
+        const bdroiteCenterX =
+          svg.elementBounds.bdroite.x + svg.elementBounds.bdroite.width / 2;
+        const bdroiteCenterY =
+          svg.elementBounds.bdroite.y + svg.elementBounds.bdroite.height / 2;
 
-      // bdroite current position on canvas
-      const bdroiteCurrentX =
-        svg.offsetX + bdroiteCenterX * svg.scale + bgaucheOffsetX;
-      const bdroiteCurrentY =
-        svg.offsetY + bdroiteCenterY * svg.scale + bdroiteOffsetY;
+        // bdroite current position on canvas
+        const bdroiteCurrentX =
+          svg.offsetX + bdroiteCenterX * svg.scale + bgaucheOffsetX;
+        const bdroiteCurrentY =
+          svg.offsetY + bdroiteCenterY * svg.scale + bdroiteOffsetY;
 
-      // Calculate translation needed to center bdroite
-      translationX = canvas.width / 2 - bdroiteCurrentX;
-      translationY = canvas.height / 2 - bdroiteCurrentY;
+        // Calculate translation needed to center bdroite
+        targetTranslationX = canvas.width / 2 - bdroiteCurrentX;
+        targetTranslationY = canvas.height / 2 - bdroiteCurrentY;
+
+        translationStartTime = Date.now();
+      }
+
+      // Smooth interpolation with easing
+      const translationTime = Date.now() - translationStartTime;
+      const progress = Math.min(translationTime / TRANSLATION_DURATION, 1.0);
+
+      // Ease in-out function for smooth movement
+      const easeInOutCubic =
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      translationX = targetTranslationX * easeInOutCubic;
+      translationY = targetTranslationY * easeInOutCubic;
+
+      // Scale from 1x to 10x
+      scaleMultiplier = 1.0 + (10.0 - 1.0) * easeInOutCubic;
     }
   }
 
-  // Draw SVGs with offsets, rotation, and translation
+  // Draw SVGs with offsets, rotation, translation, and scale
   svg.draw(
     bgaucheOffsetX,
     bdroiteOffsetY,
     rotation,
     translationX,
-    translationY
+    translationY,
+    scaleMultiplier
   );
 
   // Draw warning lines
