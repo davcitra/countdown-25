@@ -35,7 +35,12 @@ let targetTranslationX = 0;
 let targetTranslationY = 0;
 let translationStartTime = 0;
 const TRANSLATION_DURATION = 1000; // 1 second smooth movement
-let scaleMultiplier = 1.0;
+let scaleMultiplier = 1.0; // <-- SCALE IS HERE (1.0 to 10.0, then to 100.0)
+let otherElementsOpacity = 1.0; // Opacity for non-bdroite elements
+let firstScaleComplete = false;
+let secondScaleStartTime = 0;
+const SECOND_SCALE_DURATION = 1000; // 1 second for second scale
+let animationComplete = false;
 
 // Load SVGs
 svg.loadAll();
@@ -139,7 +144,7 @@ function display() {
   if (isAtEndState) {
     const timeSinceEnd = Date.now() - endStateTime;
 
-    if (timeSinceEnd >= 1500) {
+    if (timeSinceEnd >= 600) {
       // After 1.5 seconds, start smooth translation
       if (targetTranslationX === 0 && targetTranslationY === 0) {
         // Calculate target translation once
@@ -162,7 +167,7 @@ function display() {
         translationStartTime = Date.now();
       }
 
-      // Smooth interpolation with easing
+      // Smooth interpolation with easing for first scale
       const translationTime = Date.now() - translationStartTime;
       const progress = Math.min(translationTime / TRANSLATION_DURATION, 1.0);
 
@@ -175,20 +180,63 @@ function display() {
       translationX = targetTranslationX * easeInOutCubic;
       translationY = targetTranslationY * easeInOutCubic;
 
-      // Scale from 1x to 10x
-      scaleMultiplier = 1.0 + (10.0 - 1.0) * easeInOutCubic;
+      // First scale: from 1x to 10x
+      if (!firstScaleComplete) {
+        scaleMultiplier = 1.0 + (10.0 - 1.0) * easeInOutCubic;
+
+        // Fade out other elements from 1.0 to 0.0
+        otherElementsOpacity = 1.0 - easeInOutCubic;
+
+        // Check if first scale is complete
+        if (progress >= 1.0) {
+          firstScaleComplete = true;
+          secondScaleStartTime = Date.now();
+        }
+      }
+    }
+
+    // Second scaling phase: after 1 second delay from first scale completion
+    if (firstScaleComplete && !animationComplete) {
+      const timeSinceFirstScale = Date.now() - secondScaleStartTime;
+
+      if (timeSinceFirstScale >= 500) {
+        // After 1 second delay, start second scale
+        const secondScaleTime = timeSinceFirstScale - 500;
+        const secondProgress = Math.min(
+          secondScaleTime / SECOND_SCALE_DURATION,
+          1.0
+        );
+
+        // Ease in-out for second scale
+        const easeInOutCubic =
+          secondProgress < 0.5
+            ? 4 * secondProgress * secondProgress * secondProgress
+            : 1 - Math.pow(-2 * secondProgress + 2, 3) / 2;
+
+        // Second scale: from 10x to 100x (10 times bigger)
+        scaleMultiplier = 10.0 + (100.0 - 10.0) * easeInOutCubic;
+
+        // Check if second scale is complete
+        if (secondProgress >= 1.0 && !animationComplete) {
+          animationComplete = true;
+          console.log("mission accomplished");
+        }
+      }
     }
   }
 
-  // Draw SVGs with offsets, rotation, translation, and scale
-  svg.draw(
-    bgaucheOffsetX,
-    bdroiteOffsetY,
-    rotation,
-    translationX,
-    translationY,
-    scaleMultiplier
-  );
+  // Draw SVGs only if animation is not complete
+  if (!animationComplete) {
+    svg.draw(
+      bgaucheOffsetX,
+      bdroiteOffsetY,
+      rotation,
+      translationX,
+      translationY,
+      scaleMultiplier,
+      otherElementsOpacity
+    );
+  }
 
   // Draw warning lines
   // warningLines.draw(svg);

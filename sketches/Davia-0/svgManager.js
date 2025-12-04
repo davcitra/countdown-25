@@ -10,8 +10,8 @@ export default class SVG {
 
     // Define the actual drawing bounds for each element in original SVG coordinates
     this.elementBounds = {
-      bgauche: { x: 565, y: 28, width: 66, height: 43 }, // bulle_gauche O character
-      bdroite: { x: 1245, y: 233, width: 45, height: 67 }, // bulle_droite O character
+      bgauche: { x: 565, y: 39.2, width: 66, height: 43 }, // bulle_gauche O character
+      bdroite: { x: 1257.8, y: 233.2, width: 43.2, height: 66.6 }, // bulle_droite O character (y: 266.8 - 33.6, height: 33.6 + 33.1 ≈ 66.6)
       cercle: { x: 1108, y: 61, width: 384, height: 412 }, // circle with ruler marks
     };
 
@@ -91,7 +91,8 @@ export default class SVG {
     rotation = 0,
     translationX = 0,
     translationY = 0,
-    scaleMultiplier = 1.0
+    scaleMultiplier = 1.0,
+    otherElementsOpacity = 1.0
   ) {
     if (!this.loaded) return;
 
@@ -126,11 +127,12 @@ export default class SVG {
     // Draw order: static elements first, then animated ones
     const staticElements = ["metre", "cercle", "rectangle"];
 
-    // Draw static elements with rotation, translation, and scaling from bdroite center
+    // Draw static elements with fade out
     staticElements.forEach((name) => {
       const img = this.svgs.get(name);
       if (img) {
         this.ctx.save();
+        this.ctx.globalAlpha = otherElementsOpacity; // Apply opacity fade
         this.ctx.translate(transformCenterX, transformCenterY);
         this.ctx.scale(scaleMultiplier, scaleMultiplier);
         this.ctx.rotate(rotation);
@@ -146,10 +148,11 @@ export default class SVG {
       }
     });
 
-    // Draw bgauche with horizontal offset, rotation, translation, and scaling
+    // Draw bgauche with fade out
     const bgaucheImg = this.svgs.get("bgauche");
     if (bgaucheImg) {
       this.ctx.save();
+      this.ctx.globalAlpha = otherElementsOpacity; // Apply opacity fade
       this.ctx.translate(transformCenterX, transformCenterY);
       this.ctx.scale(scaleMultiplier, scaleMultiplier);
       this.ctx.rotate(rotation);
@@ -164,10 +167,11 @@ export default class SVG {
       this.ctx.restore();
     }
 
-    // Draw bdroite with vertical offset, rotation, translation, and scaling
+    // Draw bdroite (no opacity fade - stays at full opacity)
     const bdroiteImg = this.svgs.get("bdroite");
     if (bdroiteImg) {
       this.ctx.save();
+      // No globalAlpha here - bdroite stays fully visible
       this.ctx.translate(transformCenterX, transformCenterY);
       this.ctx.scale(scaleMultiplier, scaleMultiplier);
       this.ctx.rotate(rotation);
