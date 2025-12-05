@@ -45,7 +45,7 @@ let animationComplete = false;
 let bdroiteOffsetY = 0;
 let bdroiteOffsetYVelocity = 0;
 let bgaucheOffsetX = 0;
-let bgaucheOffsetXVelocity = 15;
+let bgaucheOffsetXVelocity = 0;
 
 // Load SVGs
 svg.loadAll();
@@ -163,10 +163,7 @@ function display(dt) {
 
   // bgauche: angle=0 -> initial position (0), angle=90 -> min position (-AMPLITUDE)
 
-  // bgaucheOffsetXVelocity += -(Math.sin(angleRad) - 0.01) * dt * 100;
-
-  bgaucheOffsetXVelocity += -(Math.sin(angleRad) - 0.01) * dt * 400;
-
+  bgaucheOffsetXVelocity += -Math.sin(angleRad) * dt * 100;
   bgaucheOffsetX += bgaucheOffsetXVelocity * dt;
   if (bgaucheOffsetX < -AMPLITUDE || bgaucheOffsetX > AMPLITUDE) {
     bgaucheOffsetXVelocity = 0;

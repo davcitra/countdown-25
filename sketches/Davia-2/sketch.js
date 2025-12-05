@@ -17,7 +17,7 @@ const FADE_SPEED = 0.02;
 // Initialization animation state
 let isInitializing = true;
 let initRectangleIndex = 0;
-let initRectangleDelay = 1; // Frames between each rectangle appearing
+let initRectangleDelay = 3; // Frames between each rectangle appearing
 let initFrameCounter = 0;
 let initCarStarted = false;
 

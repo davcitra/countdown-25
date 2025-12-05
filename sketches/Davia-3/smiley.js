@@ -27,10 +27,10 @@ export default class Emoji {
 
     this.targetX = this.positionX;
     this.targetY = this.positionY;
-    this.smoothing = 0.08;
-    this.mirroredSmoothing = 0.05;
+    this.smoothing = 0.05;
+    this.mirroredSmoothing = 0.03;
     this.currentSmoothing = this.smoothing;
-    this.snapSmoothing = 0.25;
+    this.snapSmoothing = 0.05;
     this.isWinking = false;
     this.isNeutral = false;
     this.isVisible = true;
@@ -162,7 +162,7 @@ export default class Emoji {
       const maxDist = 400;
       const normalizedDist = Math.min(distToTarget / maxDist, 1);
       const easedSpeed =
-        this.snapSmoothing * (1 - normalizedDist * normalizedDist * 0.8);
+        this.snapSmoothing * (1 - normalizedDist * normalizedDist * 0.2);
 
       this.positionX += (this.targetX - this.positionX) * easedSpeed;
       this.positionY += (this.targetY - this.positionY) * easedSpeed;
@@ -177,7 +177,7 @@ export default class Emoji {
     }
 
     if (this.isFallingOut) {
-      this.fallVelocity += 3;
+      this.fallVelocity += 0.5;
       this.positionY += this.fallVelocity;
       return;
     }
@@ -195,7 +195,7 @@ export default class Emoji {
         }
 
         const targetScale = 3;
-        this.threeScale += (targetScale - this.threeScale) * 0.2;
+        this.threeScale += (targetScale - this.threeScale) * 0.05;
       }
 
       if (

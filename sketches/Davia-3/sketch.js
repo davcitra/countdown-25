@@ -213,7 +213,7 @@ function display() {
   // After 1 second of being fully scaled, make the 3 fall
   if (threeFullyScaledTime && !threeFalling) {
     const timeSinceFullyScaled = Date.now() - threeFullyScaledTime;
-    if (timeSinceFullyScaled >= 500) {
+    if (timeSinceFullyScaled >= 1000) {
       emoji_2.startFalling();
       threeFalling = true;
       console.log("The 3 is falling!");

@@ -17,6 +17,14 @@ let mouseCurrentX = 0;
 let mouseCurrentY = 0;
 let slicePath = [];
 
+// Line undrawing animation
+let isUndrawing = false;
+let undrawProgress = 0;
+let undrawStartX = 0;
+let undrawStartY = 0;
+let undrawEndX = 0;
+let undrawEndY = 0;
+
 run(display);
 
 canvas.addEventListener("mousedown", handleMouseDown);
@@ -51,11 +59,16 @@ function handleMouseMove(e) {
 
 function handleMouseUp(e) {
   if (isMouseDown && flower) {
-    for (let i = 0; i < slicePath.length - 1; i++) {
-      const start = slicePath[i];
-      const end = slicePath[i + 1];
-      flower.checkSlice(start.x, start.y, end.x, end.y);
-    }
+    // Check slice with just the start and end points
+    flower.checkSlice(mouseStartX, mouseStartY, mouseCurrentX, mouseCurrentY);
+
+    // Start undrawing animation
+    isUndrawing = true;
+    undrawProgress = 0;
+    undrawStartX = mouseStartX;
+    undrawStartY = mouseStartY;
+    undrawEndX = mouseCurrentX;
+    undrawEndY = mouseCurrentY;
   }
 
   isMouseDown = false;
@@ -93,22 +106,41 @@ function display(dt) {
   }
 
   // Draw slice path while dragging (only if not rising and not complete)
-  if (
-    isMouseDown &&
-    slicePath.length > 1 &&
-    !flower.rising &&
-    !flower.gardeningComplete
-  ) {
+  if (isMouseDown && !flower.rising && !flower.gardeningComplete) {
     ctx.save();
     ctx.strokeStyle = "rgba(255, 0, 0, 1)";
     ctx.lineWidth = 25;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(slicePath[0].x, slicePath[0].y);
-    for (let i = 1; i < slicePath.length; i++) {
-      ctx.lineTo(slicePath[i].x, slicePath[i].y);
-    }
+    ctx.moveTo(mouseStartX, mouseStartY);
+    ctx.lineTo(mouseCurrentX, mouseCurrentY);
     ctx.stroke();
     ctx.restore();
+  }
+
+  // Draw undrawing animation
+  if (isUndrawing) {
+    undrawProgress += 0.08; // Speed of undrawing (adjust as needed)
+
+    if (undrawProgress >= 1) {
+      isUndrawing = false;
+      undrawProgress = 0;
+    } else {
+      // Calculate current start point based on progress
+      const currentStartX =
+        undrawStartX + (undrawEndX - undrawStartX) * undrawProgress;
+      const currentStartY =
+        undrawStartY + (undrawEndY - undrawStartY) * undrawProgress;
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 0, 0, 1)";
+      ctx.lineWidth = 25;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(currentStartX, currentStartY);
+      ctx.lineTo(undrawEndX, undrawEndY);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 }

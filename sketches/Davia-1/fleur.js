@@ -28,6 +28,30 @@ export default class Fleur {
     this.finalFlower.src = "final1.svg";
     this.finalFlowerLoaded = false;
 
+    // Load zone SVGs for detection
+    this.zoneFleur = new Image();
+    this.zoneFleur.src = "zonefleur.svg";
+    this.zoneFleurLoaded = false;
+
+    this.zoneLeftLeaf = new Image();
+    this.zoneLeftLeaf.src = "zonegauche.svg";
+    this.zoneLeftLeafLoaded = false;
+
+    this.zoneRightLeaf = new Image();
+    this.zoneRightLeaf.src = "zonedroite.svg";
+    this.zoneRightLeafLoaded = false;
+
+    // Use final1.svg as detection zone for stem
+    this.zoneStem = new Image();
+    this.zoneStem.src = "final1.svg";
+    this.zoneStemLoaded = false;
+
+    // Create offscreen canvases for zone detection
+    this.zoneCanvas = document.createElement("canvas");
+    this.zoneCtx = this.zoneCanvas.getContext("2d", {
+      willReadFrequently: true,
+    });
+
     this.fleur.onload = () => {
       this.fleurLoaded = true;
     };
@@ -46,6 +70,22 @@ export default class Fleur {
 
     this.finalFlower.onload = () => {
       this.finalFlowerLoaded = true;
+    };
+
+    this.zoneFleur.onload = () => {
+      this.zoneFleurLoaded = true;
+    };
+
+    this.zoneLeftLeaf.onload = () => {
+      this.zoneLeftLeafLoaded = true;
+    };
+
+    this.zoneRightLeaf.onload = () => {
+      this.zoneRightLeafLoaded = true;
+    };
+
+    this.zoneStem.onload = () => {
+      this.zoneStemLoaded = true;
     };
 
     // Individual layer transformations
@@ -102,6 +142,12 @@ export default class Fleur {
     this.centeringDelay = 0;
     this.fadeInSpeed = 0.02;
 
+    // Stem flicker effect
+    this.stemFlickering = false;
+    this.stemFlickerCount = 0;
+    this.stemFlickerFrame = 0;
+    this.stemShowRed = false;
+
     // Calculate rise speed
     this.riseSpeed = (this.y - this.targetY) / 90; // 90 frames to rise
   }
@@ -111,7 +157,11 @@ export default class Fleur {
       this.fleurLoaded &&
       this.stemLoaded &&
       this.leftLeafLoaded &&
-      this.rightLeafLoaded
+      this.rightLeafLoaded &&
+      this.zoneFleurLoaded &&
+      this.zoneLeftLeafLoaded &&
+      this.zoneRightLeafLoaded &&
+      this.zoneStemLoaded
     );
   }
 
@@ -145,45 +195,58 @@ export default class Fleur {
     }
   }
 
-  // Check if a point is inside a layer's bounding box
-  isPointInLayer(px, py, layerName) {
-    const halfWidth = this.width / 2;
-    const halfHeight = this.height / 2;
-
+  // Check if a point is inside a zone using pixel detection
+  isPointInZone(px, py, zoneImage) {
+    // Transform point to local coordinates
     const localX = px - this.x;
     const localY = py - this.y;
 
-    let offset;
-    if (layerName === "fleur") offset = this.fleurOffset;
-    else if (layerName === "leftLeaf") offset = this.leftLeafOffset;
-    else if (layerName === "rightLeaf") offset = this.rightLeafOffset;
-    else return false;
+    // Set up the zone canvas to match the flower dimensions
+    this.zoneCanvas.width = this.width;
+    this.zoneCanvas.height = this.height;
 
-    const layerX = localX - offset.x;
-    const layerY = localY - offset.y;
+    // Clear and draw the zone image
+    this.zoneCtx.clearRect(0, 0, this.width, this.height);
+    this.zoneCtx.drawImage(zoneImage, 0, 0, this.width, this.height);
 
-    if (layerName === "fleur") {
-      return layerY < -halfHeight * 0.3 && Math.abs(layerX) < halfWidth * 0.6;
-    } else if (layerName === "leftLeaf") {
-      return (
-        layerX < -halfWidth * 0.2 &&
-        layerY > -halfHeight * 0.2 &&
-        layerY < halfHeight * 0.4
-      );
-    } else if (layerName === "rightLeaf") {
-      return (
-        layerX > halfWidth * 0.2 &&
-        layerY > -halfHeight * 0.2 &&
-        layerY < halfHeight * 0.4
-      );
+    // Convert local coordinates to zone canvas coordinates
+    const canvasX = localX + this.width / 2;
+    const canvasY = localY + this.height / 2;
+
+    // Check if coordinates are within canvas bounds
+    if (
+      canvasX < 0 ||
+      canvasX >= this.width ||
+      canvasY < 0 ||
+      canvasY >= this.height
+    ) {
+      return false;
     }
 
-    return false;
+    // Get pixel data at the point
+    const pixelData = this.zoneCtx.getImageData(canvasX, canvasY, 1, 1).data;
+
+    // Check if pixel has any opacity (alpha > 0)
+    return pixelData[3] > 0;
+  }
+
+  // Check if a point is inside a layer's zone
+  isPointInLayer(px, py, layerName) {
+    if (!this.loaded) return false;
+
+    let zoneImage;
+    if (layerName === "fleur") zoneImage = this.zoneFleur;
+    else if (layerName === "leftLeaf") zoneImage = this.zoneLeftLeaf;
+    else if (layerName === "rightLeaf") zoneImage = this.zoneRightLeaf;
+    else if (layerName === "stem") zoneImage = this.zoneStem;
+    else return false;
+
+    return this.isPointInZone(px, py, zoneImage);
   }
 
   // Check if a line segment crosses through a layer
   checkSlice(startX, startY, endX, endY) {
-    const layers = ["fleur", "leftLeaf", "rightLeaf"];
+    const layers = ["fleur", "leftLeaf", "rightLeaf", "stem"];
 
     for (let layer of layers) {
       const numSamples = 20;
@@ -227,6 +290,13 @@ export default class Fleur {
       };
       this.rightLeafAngularVelocity = (Math.random() - 0.5) * 0.15;
       console.log("Right leaf detached!");
+    } else if (layerName === "stem" && !this.stemFlickering) {
+      // Start flicker effect for stem
+      this.stemFlickering = true;
+      this.stemFlickerCount = 0;
+      this.stemFlickerFrame = 0;
+      this.stemShowRed = false;
+      console.log("Stem clicked! Flickering...");
     }
   }
 
@@ -242,6 +312,28 @@ export default class Fleur {
         console.log("Plant fully risen!");
       }
       return; // Don't process other updates while rising
+    }
+
+    // Handle stem flicker animation
+    if (this.stemFlickering) {
+      this.stemFlickerFrame++;
+
+      // Toggle red filter every 5 frames (adjust for speed)
+      if (this.stemFlickerFrame % 12 === 0) {
+        this.stemShowRed = !this.stemShowRed;
+
+        // Count complete flickers (on + off = 1 flicker)
+        if (!this.stemShowRed) {
+          this.stemFlickerCount++;
+        }
+
+        // Stop after 2 complete flickers
+        if (this.stemFlickerCount >= 2) {
+          this.stemFlickering = false;
+          this.stemShowRed = false;
+          console.log("Stem flicker complete!");
+        }
+      }
     }
 
     // Update falling physics for detached parts
@@ -276,6 +368,7 @@ export default class Fleur {
 
     // Animate stem centering
     if (this.stemCentering && !this.stemCentered) {
+      this.stemFlickering = false;
       this.y += this.centeringSpeed;
 
       if (
@@ -290,6 +383,7 @@ export default class Fleur {
 
     // Handle delay before final flower appears
     if (this.stemCentered && this.centeringDelay > 0) {
+      this.stemFlickering = false;
       this.centeringDelay--;
       if (this.centeringDelay === 0) {
         this.finalFlowerAppearing = true;
@@ -299,6 +393,7 @@ export default class Fleur {
 
     // Fade in final flower
     if (this.finalFlowerAppearing && this.finalFlowerOpacity < 1) {
+      this.stemFlickering = false;
       this.finalFlowerOpacity += this.fadeInSpeed;
       if (this.finalFlowerOpacity >= 1) {
         this.finalFlowerOpacity = 1;
@@ -326,14 +421,14 @@ export default class Fleur {
     }
   }
 
-  drawLayer(ctx, image, offset, rotation, scale, isDetached = false) {
+  drawLayer(ctx, image, offset, rotation, scale, applyRedFilter = false) {
     ctx.save();
     ctx.translate(offset.x, offset.y);
     ctx.rotate(rotation);
     ctx.scale(scale, scale);
 
-    // Apply red filter only to detached parts
-    if (isDetached) {
+    // Apply red filter if requested
+    if (applyRedFilter) {
       ctx.filter =
         "hue-rotate(0deg) saturate(100) brightness(0.2) sepia(2) hue-rotate(-50deg) saturate(10)";
     }
@@ -358,14 +453,15 @@ export default class Fleur {
         ctx.rotate(this.finalFallRotation);
       }
 
-      // Always draw the stem (1.svg)
+      // Always draw the stem (1.svg) with flicker effect
       if (this.stemLoaded) {
         this.drawLayer(
           ctx,
           this.stem,
           this.stemOffset,
           this.stemRotation,
-          this.stemScale
+          this.stemScale,
+          this.stemShowRed
         );
       }
 
