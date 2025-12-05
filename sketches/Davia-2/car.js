@@ -36,7 +36,7 @@ export default class Voiture {
     this.maskImage = new Image();
     this.maskImage.src = "VoitureCache.svg";
     this.maskLoaded = false;
-    this.motorSoundInstance = motorSound;
+    // this.motorSoundInstance = motorSound;
     this.maskImage.onload = () => {
       this.maskLoaded = true;
     };
@@ -86,10 +86,10 @@ export default class Voiture {
     }
     console.log(this.speed);
 
-    this.motorSoundInstance.setVolume(math.mapClamped(this.speed, 0, 23, 0, 1));
-    this.motorSoundInstance.setRate(
-      math.mapClamped(this.speed, 0, 23, 0.8, 1.2)
-    );
+    // this.motorSoundInstance.setVolume(math.mapClamped(this.speed, 0, 23, 0, 1));
+    // this.motorSoundInstance.setRate(
+    //   math.mapClamped(this.speed, 0, 23, 0.8, 1.2)
+    // );
 
     if (!this.isOffRoad) {
       this.positionAlongPath += this.speed;

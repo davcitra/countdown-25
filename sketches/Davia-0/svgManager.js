@@ -40,7 +40,6 @@ export default class SVG {
       { name: "bgauche", path: "./bgauche.svg" },
       { name: "metre", path: "./metre.svg" },
       { name: "cercle", path: "./cercle.svg" },
-      { name: "rectangle", path: "./rectangle.svg" },
     ];
 
     try {
@@ -125,7 +124,7 @@ export default class SVG {
       scaleMultiplier > 1.0 ? bdroiteCanvasY : this.rotationCenterY;
 
     // Draw order: static elements first, then animated ones
-    const staticElements = ["metre", "cercle", "rectangle"];
+    const staticElements = ["metre", "cercle"];
 
     // Draw static elements with fade out
     staticElements.forEach((name) => {
@@ -148,24 +147,24 @@ export default class SVG {
       }
     });
 
-    // Draw bgauche with fade out
-    const bgaucheImg = this.svgs.get("bgauche");
-    if (bgaucheImg) {
-      this.ctx.save();
-      this.ctx.globalAlpha = otherElementsOpacity; // Apply opacity fade
-      this.ctx.translate(transformCenterX, transformCenterY);
-      this.ctx.scale(scaleMultiplier, scaleMultiplier);
-      this.ctx.rotate(rotation);
-      this.ctx.translate(-transformCenterX, -transformCenterY);
-      this.ctx.drawImage(
-        bgaucheImg,
-        this.initialPositions.bgauche.x + bgaucheOffsetX + translationX,
-        this.initialPositions.bgauche.y + translationY,
-        this.scaledWidth,
-        this.scaledHeight
-      );
-      this.ctx.restore();
-    }
+    // // Draw bgauche with fade out
+    // const bgaucheImg = this.svgs.get("bgauche");
+    // if (bgaucheImg) {
+    //   this.ctx.save();
+    //   this.ctx.globalAlpha = otherElementsOpacity; // Apply opacity fade
+    //   this.ctx.translate(transformCenterX, transformCenterY);
+    //   this.ctx.scale(scaleMultiplier, scaleMultiplier);
+    //   this.ctx.rotate(rotation);
+    //   this.ctx.translate(-transformCenterX, -transformCenterY);
+    //   this.ctx.drawImage(
+    //     bgaucheImg,
+    //     this.initialPositions.bgauche.x + bgaucheOffsetX + translationX,
+    //     this.initialPositions.bgauche.y + translationY,
+    //     this.scaledWidth,
+    //     this.scaledHeight
+    //   );
+    //   this.ctx.restore();
+    // }
 
     // Draw bdroite (no opacity fade - stays at full opacity)
     const bdroiteImg = this.svgs.get("bdroite");
