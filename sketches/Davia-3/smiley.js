@@ -27,8 +27,8 @@ export default class Emoji {
 
     this.targetX = this.positionX;
     this.targetY = this.positionY;
-    this.smoothing = 0.05;
-    this.mirroredSmoothing = 0.03;
+    this.smoothing = 0.03;
+    this.mirroredSmoothing = 0.01;
     this.currentSmoothing = this.smoothing;
     this.snapSmoothing = 0.05;
     this.isWinking = false;
@@ -133,7 +133,7 @@ export default class Emoji {
 
   update() {
     if (this.isAnimatingIn) {
-      const slideSpeed = 0.3;
+      const slideSpeed = 0.05;
       this.positionX += (this.initialX - this.positionX) * slideSpeed;
       this.positionY += (this.initialY - this.positionY) * slideSpeed;
 

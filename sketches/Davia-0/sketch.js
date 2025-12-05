@@ -242,7 +242,8 @@ function display() {
         // Check if second scale is complete
         if (secondProgress >= 1.0 && !animationComplete) {
           animationComplete = true;
-          console.log("mission accomplished");
+          // console.log("mission accomplished");
+          finish();
         }
       }
     }
