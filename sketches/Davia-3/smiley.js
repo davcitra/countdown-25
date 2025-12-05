@@ -79,8 +79,11 @@ export default class Emoji {
     if (this.emoji === 1) {
       this.targetX = this.canvas.width + this.size;
     } else {
+      // For emoji -1 (the ":3"), move to center
       this.targetX = this.canvas.width / 2;
       this.targetY = this.canvas.height / 2;
+      // Start fading out the colon immediately
+      this.colonOpacity = 0;
     }
   }
 
@@ -188,12 +191,7 @@ export default class Emoji {
       this.positionY += (this.targetY - this.positionY) * speed;
 
       if (this.isSlidingOut && this.emoji === -1) {
-        // Make ":" disappear instantly when "3" reaches center
-        const atCenter = Math.abs(this.positionY - this.canvas.height / 2) < 10;
-        if (atCenter) {
-          this.colonOpacity = 0;
-        }
-
+        // Scale "3" as it moves to center
         const targetScale = 3;
         this.threeScale += (targetScale - this.threeScale) * 0.05;
       }
